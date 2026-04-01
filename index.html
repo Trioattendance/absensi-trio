@@ -1,59 +1,111 @@
 <!DOCTYPE html>
 <html>
+<head>
+  <title>Absensi Karyawan</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+      max-width: 400px;
+      margin: auto;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+    .btn-masuk {
+      background: #28a745;
+      color: white;
+      border: none;
+    }
+    .btn-pulang {
+      background: #dc3545;
+      color: white;
+      border: none;
+    }
+    video, canvas {
+      width: 100%;
+      margin-top: 10px;
+    }
+    #msg {
+      margin-top: 15px;
+      font-weight: bold;
+      text-align: center;
+    }
+  </style>
+</head>
 <body>
 
-<h3>Absensi Karyawan</h3>
+<h2>Absensi Karyawan</h2>
 
-NIK: <input id="nik"><br>
-PIN: <input id="pin" type="password"><br><br>
+<input type="text" id="nik" placeholder="NIK">
+<input type="password" id="pin" placeholder="PIN">
 
-Status:
-<select id="status">
-  <option>Masuk</option>
-  <option>Pulang</option>
-</select><br><br>
+<video id="video" autoplay></video>
+<button onclick="ambilFoto()">Ambil Foto</button>
+<canvas id="canvas" style="display:none;"></canvas>
 
-Foto:
-<input type="file" id="foto" accept="image/*" capture="camera"><br><br>
+<button class="btn-masuk" onclick="kirim('Masuk')">Masuk</button>
+<button class="btn-pulang" onclick="kirim('Pulang')">Pulang</button>
 
-<button onclick="absen()">Absen</button>
-
-<p id="msg"></p>
+<div id="msg"></div>
 
 <script>
-function absen() {
+let fotoBase64 = "";
+
+// AKSES KAMERA
+navigator.mediaDevices.getUserMedia({ video: true })
+.then(stream => {
+  document.getElementById("video").srcObject = stream;
+});
+
+// AMBIL FOTO
+function ambilFoto() {
+  let canvas = document.getElementById("canvas");
+  let video = document.getElementById("video");
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  canvas.getContext("2d").drawImage(video, 0, 0);
+  fotoBase64 = canvas.toDataURL("image/jpeg");
+
+  alert("Foto berhasil diambil");
+}
+
+// KIRIM DATA
+function kirim(status) {
+  let nik = document.getElementById("nik").value;
+  let pin = document.getElementById("pin").value;
+
+  if (!nik || !pin || !fotoBase64) {
+    alert("Lengkapi data & foto dulu!");
+    return;
+  }
+
   navigator.geolocation.getCurrentPosition(pos => {
 
-    let file = document.getElementById("foto").files[0];
-    if (!file) {
-      alert("Foto wajib diambil!");
-      return;
-    }
-
-    let reader = new FileReader();
-
-    reader.onloadend = function() {
-      fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec", {
-        method: "POST",
-        body: JSON.stringify({
-          nik: document.getElementById("nik").value,
-          pin: document.getElementById("pin").value,
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          status: document.getElementById("status").value,
-          foto: reader.result
-        })
+    fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec?action=getAbsensi", {
+      method: "POST",
+      body: JSON.stringify({
+        nik: nik,
+        pin: pin,
+        status: status,
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        foto: fotoBase64
       })
-      .then(res => res.json())
-      .then(res => {
-        document.getElementById("msg").innerText = res.message || "Berhasil";
-      });
-    };
+    })
+    .then(res => res.json())
+    .then(res => {
+      document.getElementById("msg").innerText = res.message;
+    });
 
-    reader.readAsDataURL(file);
-
-  }, function() {
-    alert("GPS tidak aktif!");
+  }, () => {
+    alert("GPS gagal diambil");
   });
 }
 </script>
