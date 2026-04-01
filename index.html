@@ -95,7 +95,7 @@ function kirim(status) {
 
   navigator.geolocation.getCurrentPosition(pos => {
 
-    fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec?action=getAbsensi", {
+    fetch(fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec", {
       method: "POST",
       body: JSON.stringify({
         nik: nik,
@@ -107,14 +107,32 @@ function kirim(status) {
       })
     })
     .then(res => res.json())
-    .then(res => {
-      document.getElementById("msg").innerText = res.message;
-    });
+.then(res => {
+
+  document.getElementById("msg").innerText = res.message;
+
+  if (res.status === "success") {
+    document.getElementById("successSound").play();
+
+    // reset form
+    document.getElementById("nik").value = "";
+    document.getElementById("pin").value = "";
+    fotoBase64 = "";
+    document.getElementById("canvas").style.display = "none";
+
+  } else {
+    document.getElementById("errorSound").play();
+  }
+
+});
 
   }, () => {
     alert("GPS gagal diambil");
   });
 }
+  <div id="msg"></div>
+  <audio id="successSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+<audio id="errorSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 </script>
 
 </body>
