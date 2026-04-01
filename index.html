@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h3>Absensi Karyawan</h3>
+
+NIK: <input id="nik"><br>
+PIN: <input id="pin" type="password"><br><br>
+
+Status:
+<select id="status">
+  <option>Masuk</option>
+  <option>Pulang</option>
+</select><br><br>
+
+Foto:
+<input type="file" id="foto" accept="image/*" capture="camera"><br><br>
+
+<button onclick="absen()">Absen</button>
+
+<p id="msg"></p>
+
+<script>
+function absen() {
+  navigator.geolocation.getCurrentPosition(pos => {
+
+    let file = document.getElementById("foto").files[0];
+    if (!file) {
+      alert("Foto wajib diambil!");
+      return;
+    }
+
+    let reader = new FileReader();
+
+    reader.onloadend = function() {
+      fetch(https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec, {
+        method: "POST",
+        body: JSON.stringify({
+          nik: document.getElementById("nik").value,
+          pin: document.getElementById("pin").value,
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          status: document.getElementById("status").value,
+          foto: reader.result
+        })
+      })
+      .then(res => res.json())
+      .then(res => {
+        document.getElementById("msg").innerText = res.message || "Berhasil";
+      });
+    };
+
+    reader.readAsDataURL(file);
+
+  }, function() {
+    alert("GPS tidak aktif!");
+  });
+}
+</script>
+
+</body>
+</html>
