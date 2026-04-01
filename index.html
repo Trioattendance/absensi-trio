@@ -57,17 +57,29 @@
 let fotoBase64 = "";
 
 // AKSES KAMERA
-navigator.mediaDevices.getUserMedia({
-  video: {
-    facingMode: "user" // kamera depan
+let streamCamera;
+
+async function startCamera() {
+  try {
+    streamCamera = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" },
+      audio: false
+    });
+
+    const video = document.getElementById("video");
+    video.srcObject = streamCamera;
+
+    video.onloadedmetadata = () => {
+      video.play();
+    };
+
+  } catch (err) {
+    alert("Kamera tidak bisa diakses: " + err.message);
   }
-})
-.then(stream => {
-  document.getElementById("video").srcObject = stream;
-})
-.catch(err => {
-  alert("Tidak bisa akses kamera: " + err);
-});
+}
+
+// jalankan setelah halaman siap
+window.onload = startCamera;
 
 // AMBIL FOTO
 function ambilFoto() {
