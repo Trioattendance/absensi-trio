@@ -57,9 +57,16 @@
 let fotoBase64 = "";
 
 // AKSES KAMERA
-navigator.mediaDevices.getUserMedia({ video: true })
+navigator.mediaDevices.getUserMedia({
+  video: {
+    facingMode: "user" // kamera depan
+  }
+})
 .then(stream => {
   document.getElementById("video").srcObject = stream;
+})
+.catch(err => {
+  alert("Tidak bisa akses kamera: " + err);
 });
 
 // AMBIL FOTO
