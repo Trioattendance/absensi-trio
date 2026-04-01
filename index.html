@@ -145,7 +145,36 @@ function kirim(status) {
   <div id="msg"></div>
   <audio id="successSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
 <audio id="errorSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
-</script>
+
+<script>
+let fotoBase64 = "";
+
+// 🔥 INI YANG BARU (ganti di sini)
+let streamCamera;
+
+async function startCamera() {
+  try {
+    streamCamera = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" },
+      audio: false
+    });
+
+    const video = document.getElementById("video");
+    video.srcObject = streamCamera;
+
+    video.onloadedmetadata = () => {
+      video.play();
+    };
+
+  } catch (err) {
+    alert("Kamera tidak bisa diakses: " + err.message);
+  }
+}
+
+window.onload = startCamera;
+
+// AMBIL FOTO (biarkan di bawah)
+function ambilFoto() {
 
 </body>
 </html>
