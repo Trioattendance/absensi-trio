@@ -40,77 +40,39 @@
       font-size: 20px;
       font-weight: bold;
       color: #3b82f6;
-      margin-bottom: 15px;
-    }
-
-    .form-group label {
-      font-size: 13px;
-      margin-bottom: 5px;
-      display: block;
-    }
-
-    .input-wrapper {
-      display: flex;
-      align-items: center;
-      background: #f9fafb;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      padding: 0 10px;
-    }
-
-    .input-wrapper:focus-within {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+      margin-bottom: 10px;
     }
 
     .input-login {
-      flex: 1;
-      border: none;
-      outline: none;
+      width: 100%;
       padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
       font-size: 15px;
-      background: transparent;
+      text-align: center;
     }
 
-    /* 🔥 USER CARD */
+    /* USER CARD */
     .user-card {
-      margin-top: 15px;
-      padding: 15px;
-      border-radius: 14px;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
       background: #f9fafb;
       text-align: center;
       border: 1px solid #eee;
       display: none;
     }
 
-    .company {
-      font-size: 13px;
-      color: #888;
-    }
-
-    .nama {
-      font-size: 16px;
-      font-weight: bold;
-      margin-top: 4px;
-    }
-
-    .nik {
-      font-size: 13px;
-      color: #3b82f6;
-    }
-
-    .status {
-      margin-top: 8px;
-      font-size: 13px;
-      font-weight: bold;
-      color: #10b981;
-    }
+    .company { font-size: 12px; color: #888; }
+    .nama { font-size: 15px; font-weight: bold; }
+    .nik { font-size: 13px; color: #3b82f6; }
+    .status { font-size: 13px; font-weight: bold; margin-top: 5px; }
 
     #lokasiUser {
       text-align: center;
-      margin-top: 8px;
       font-size: 12px;
       color: #666;
+      margin-top: 5px;
     }
 
     video, img {
@@ -157,14 +119,9 @@
 
     <div class="jam" id="jamWIB"></div>
 
-    <div class="form-group">
-      <label>Masukkan NIK</label>
-      <div class="input-wrapper">
-        <input type="text" id="nik" class="input-login" placeholder="Contoh: 12345678">
-      </div>
-    </div>
+    <input type="text" id="nik" class="input-login" placeholder="Masukkan NIK">
 
-    <!-- 🔥 USER CARD -->
+    <!-- USER CARD -->
     <div class="user-card" id="userCard">
       <div id="companyUser" class="company"></div>
       <div id="namaUser" class="nama"></div>
@@ -192,15 +149,12 @@
 <div id="successScreen">
   <div style="background:white;padding:30px;border-radius:20px;text-align:center;">
     <h2 style="color:#10b981;">✔ Absensi Berhasil</h2>
-    <p>Data berhasil disimpan</p>
   </div>
 </div>
 
 <script>
 let userData=null,fotoBase64="",sudahFoto=false;
 const nikInput=document.getElementById("nik");
-
-window.onload=()=>nikInput.focus();
 
 // JAM WIB
 setInterval(()=>{
@@ -209,7 +163,7 @@ setInterval(()=>{
  document.getElementById("jamWIB").innerText=wib.toTimeString().split(" ")[0]+" WIB";
 },1000);
 
-// INPUT NUMBER ONLY
+// ONLY NUMBER
 nikInput.addEventListener("keypress",e=>{
  if(!/[0-9]/.test(e.key)) e.preventDefault();
 });
@@ -218,14 +172,7 @@ nikInput.addEventListener("keypress",e=>{
 nikInput.addEventListener("input",()=>{
  let nik=nikInput.value;
  if(nik.length>=4) cekUser(nik.slice(-4));
- else resetUI();
 });
-
-// RESET
-function resetUI(){
- userData=null;
- userCard.style.display="none";
-}
 
 // GET USER
 function cekUser(nik){
@@ -242,10 +189,6 @@ function cekUser(nik){
    userCard.style.display="block";
 
    cekStatus(r.nik);
-
-  }else{
-   resetUI();
-   alert("User tidak ditemukan");
   }
  });
 }
@@ -253,26 +196,15 @@ function cekUser(nik){
 // STATUS
 function cekStatus(nik){
  fetch("YOUR_WEB_APP_URL?action=cekStatus&nik="+nik)
- .then(res=>res.json())
- .then(res=>{
+ .then(r=>r.json())
+ .then(r=>{
   let txt="";
-  if(res.masuk && res.pulang) txt="✔ Sudah Masuk & Pulang";
-  else if(res.masuk) txt="✔ Sudah Masuk";
-  else if(res.pulang) txt="✔ Sudah Pulang";
-  else txt="Belum absen hari ini";
-
+  if(r.masuk && r.pulang) txt="✔ Sudah Masuk & Pulang";
+  else if(r.masuk) txt="✔ Sudah Masuk";
+  else txt="Belum absen";
   statusUser.innerText=txt;
  });
 }
-
-// LOKASI
-navigator.geolocation.getCurrentPosition(pos => {
- fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
- .then(res => res.json())
- .then(data => {
-  lokasiUser.innerText = "📍 " + data.display_name;
- });
-});
 
 // CAMERA
 navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}})
@@ -298,7 +230,7 @@ function toggleFoto(){
  }
 }
 
-// KIRIM
+// 🔥 FIX MOBILE + GPS + ALAMAT
 function kirim(status){
 
  if(!userData||!fotoBase64){
