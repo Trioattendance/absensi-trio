@@ -30,41 +30,53 @@
 
     .card {
       background: white;
-      padding: 15px;
+      padding: 18px;
       border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       margin-top: 15px;
     }
 
-    input {
+    /* LOGIN STYLE INPUT */
+    .input-login {
       width: 100%;
-      padding: 14px;
-      border-radius: 12px;
+      padding: 12px;
+      border-radius: 10px;
       border: 1px solid #ddd;
-      font-size: 20px;
+      font-size: 16px;
       text-align: center;
+      box-sizing: border-box;
     }
 
-    input:focus {
+    .input-login:focus {
       outline: none;
       border: 1px solid #3b82f6;
       box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
     }
 
-    input::placeholder {
+    .input-login::placeholder {
       color: rgba(0,0,0,0.3);
-      font-size: 14px;
+      font-size: 13px;
     }
 
     #nikFull {
       text-align: center;
       font-weight: bold;
-      margin-top: 8px;
+      margin-top: 10px;
       color: #3b82f6;
+      font-size: 15px;
     }
 
-    #namaUser, #lokasiUser, #statusUser {
+    #namaUser {
       text-align: center;
+      font-weight: bold;
+      margin-top: 5px;
+      font-size: 16px;
+    }
+
+    #lokasiUser, #statusUser {
+      text-align: center;
+      font-size: 12px;
+      color: #666;
       margin-top: 5px;
     }
 
@@ -102,20 +114,23 @@
 
 <div class="container">
 
+  <!-- LOGIN -->
   <div class="card">
-    <input type="text" id="nik" placeholder="Masukkan NIK">
+    <input type="text" id="nik" class="input-login" placeholder="Masukkan NIK">
     <div id="nikFull"></div>
     <div id="namaUser"></div>
     <div id="lokasiUser"></div>
     <div id="statusUser"></div>
   </div>
 
+  <!-- CAMERA -->
   <div class="card">
     <video id="video" autoplay playsinline></video>
     <img id="preview" style="display:none;">
     <button id="btnFoto" class="btn-foto" onclick="toggleFoto()">📸 Ambil Foto</button>
   </div>
 
+  <!-- ACTION -->
   <div class="card">
     <button class="btn-masuk" onclick="kirim('Masuk')">✅ Masuk</button>
     <button class="btn-pulang" onclick="kirim('Pulang')">🏠 Pulang</button>
@@ -133,39 +148,20 @@ let userData = null;
 let fotoBase64 = "";
 let sudahFoto = false;
 
-// AUTO FOCUS
-window.onload = () => {
-  document.getElementById("nik").focus();
-};
-
-// EVENT LISTENER (LEBIH STABIL)
 const nikInput = document.getElementById("nik");
 
+// EVENT STABIL
 nikInput.addEventListener("input", formatNik);
-nikInput.addEventListener("keyup", formatNik);
 
-// HANYA ANGKA
-nikInput.addEventListener("keypress", (e) => {
-  if (!/[0-9]/.test(e.key)) e.preventDefault();
-});
-
-// ENTER = AUTO CEK
-nikInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    formatNik();
-  }
-});
-
-// FORMAT NIK
+// FORMAT + SEARCH
 function formatNik() {
-  let nik = nikInput.value || "";
-
-  document.getElementById("nikFull").innerText = nik;
+  let nik = nikInput.value;
 
   if (nik.length >= 4) {
     cekUser(nik.slice(-4));
   } else {
     userData = null;
+    document.getElementById("nikFull").innerText = "";
     document.getElementById("namaUser").innerText = "";
     document.getElementById("statusUser").innerText = "";
   }
@@ -178,17 +174,21 @@ function cekUser(nik) {
   .then(res => {
     if (res.status === "success") {
       userData = res;
+
+      // 🔥 tampilkan NIK dari database (bukan input)
+      document.getElementById("nikFull").innerText = res.nik;
+
       document.getElementById("namaUser").innerText = res.nama;
       cekStatus(res.nik);
     } else {
       userData = null;
+      document.getElementById("nikFull").innerText = "";
       document.getElementById("namaUser").innerText = "User tidak ditemukan";
-      vibrate();
     }
   });
 }
 
-// CEK STATUS
+// STATUS
 function cekStatus(nik) {
   fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec?action=cekStatus&nik=" + nik)
   .then(res => res.json())
@@ -220,7 +220,6 @@ navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
 function toggleFoto() {
   let video = document.getElementById("video");
   let preview = document.getElementById("preview");
-  let btn = document.getElementById("btnFoto");
 
   if (!sudahFoto) {
     let canvas = document.createElement("canvas");
@@ -233,13 +232,10 @@ function toggleFoto() {
     preview.src = fotoBase64;
     preview.style.display = "block";
     video.style.display = "none";
-
-    btn.innerText = "🔄 Ulang Foto";
     sudahFoto = true;
   } else {
     preview.style.display = "none";
     video.style.display = "block";
-    btn.innerText = "📸 Ambil Foto";
     fotoBase64 = "";
     sudahFoto = false;
   }
@@ -249,7 +245,6 @@ function toggleFoto() {
 function kirim(status) {
   if (!userData || !fotoBase64) {
     alert("Lengkapi data dulu");
-    vibrate();
     return;
   }
 
@@ -266,20 +261,7 @@ function kirim(status) {
   .then(res => res.json())
   .then(res => {
     document.getElementById("msg").innerText = res.message;
-
-    if (res.status === "success") {
-      successSound.play();
-      cekStatus(userData.nik);
-    } else {
-      errorSound.play();
-      vibrate();
-    }
   });
-}
-
-// VIBRATE HP
-function vibrate() {
-  if (navigator.vibrate) navigator.vibrate(200);
 }
 </script>
 
