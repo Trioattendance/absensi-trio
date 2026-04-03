@@ -41,22 +41,26 @@
       color: white;
     }
 
-    video, canvas {
+    #cameraBox {
+      position: relative;
+    }
+
+    video, img {
       width: 100%;
-      margin-top: 10px;
       border-radius: 10px;
+      margin-top: 10px;
+    }
+
+    #loadingCam {
+      text-align: center;
+      margin-top: 5px;
+      color: #666;
     }
 
     #msg {
       margin-top: 15px;
       font-weight: bold;
       text-align: center;
-    }
-
-    #loadingCam {
-      text-align: center;
-      margin-top: 10px;
-      color: #666;
     }
   </style>
 </head>
@@ -68,11 +72,14 @@
 <input type="text" id="nik" placeholder="NIK">
 <input type="password" id="pin" placeholder="PIN">
 
-<video id="video" autoplay playsinline></video>
+<div id="cameraBox">
+  <video id="video" autoplay playsinline></video>
+  <img id="preview" style="display:none;">
+</div>
+
 <div id="loadingCam">⏳ Menyalakan kamera...</div>
 
-<button onclick="ambilFoto()">📸 Ambil Foto</button>
-<canvas id="canvas" style="display:none;"></canvas>
+<button id="btnFoto" onclick="toggleFoto()">📸 Ambil Foto</button>
 
 <button class="btn-masuk" onclick="kirim('Masuk')">✅ Masuk</button>
 <button class="btn-pulang" onclick="kirim('Pulang')">🏠 Pulang</button>
@@ -87,8 +94,9 @@
 let fotoBase64 = "";
 let streamCamera;
 let audioReady = false;
+let sudahFoto = false;
 
-// trigger audio
+// trigger audio HP
 document.body.addEventListener("click", () => {
   audioReady = true;
 }, { once: true });
@@ -118,25 +126,42 @@ async function startCamera() {
 
 document.addEventListener("DOMContentLoaded", startCamera);
 
-// AMBIL FOTO
-function ambilFoto() {
+// TOGGLE FOTO
+function toggleFoto() {
   let video = document.getElementById("video");
+  let preview = document.getElementById("preview");
+  let btn = document.getElementById("btnFoto");
 
-  if (!video.videoWidth) {
-    alert("Kamera masih loading...");
-    return;
+  if (!sudahFoto) {
+    if (!video.videoWidth) {
+      alert("Kamera masih loading...");
+      return;
+    }
+
+    let canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    let ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0);
+
+    fotoBase64 = canvas.toDataURL("image/jpeg");
+
+    preview.src = fotoBase64;
+    preview.style.display = "block";
+    video.style.display = "none";
+
+    btn.innerText = "🔄 Ulang Foto";
+    sudahFoto = true;
+
+  } else {
+    preview.style.display = "none";
+    video.style.display = "block";
+
+    btn.innerText = "📸 Ambil Foto";
+    fotoBase64 = "";
+    sudahFoto = false;
   }
-
-  let canvas = document.getElementById("canvas");
-
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-
-  canvas.getContext("2d").drawImage(video, 0, 0);
-
-  fotoBase64 = canvas.toDataURL("image/jpeg");
-
-  canvas.style.display = "block";
 }
 
 // KIRIM DATA
@@ -175,8 +200,14 @@ function kirim(status) {
 
         document.getElementById("nik").value = "";
         document.getElementById("pin").value = "";
+
+        // reset foto
+        document.getElementById("preview").style.display = "none";
+        document.getElementById("video").style.display = "block";
+        document.getElementById("btnFoto").innerText = "📸 Ambil Foto";
+
         fotoBase64 = "";
-        document.getElementById("canvas").style.display = "none";
+        sudahFoto = false;
 
       } else {
         if (audioReady) document.getElementById("errorSound").play();
