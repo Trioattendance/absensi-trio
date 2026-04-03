@@ -45,7 +45,7 @@
       margin-bottom: 15px;
     }
 
-    /* FORM LOGIN STYLE */
+    /* FORM */
     .form-group {
       margin-bottom: 10px;
     }
@@ -57,59 +57,48 @@
       margin-bottom: 5px;
     }
 
-    .input-login {
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
+    /* 🔥 INPUT LOGIN MODERN */
+    .input-wrapper {
+      display: flex;
+      align-items: center;
+      background: #f9fafb;
       border: 1px solid #ddd;
-      font-size: 15px;
-      text-align: center;
-      box-sizing: border-box;
+      border-radius: 12px;
+      padding: 0 10px;
       transition: 0.2s;
     }
 
-    .input-login:focus {
-      outline: none;
+    .input-wrapper:focus-within {
       border-color: #3b82f6;
       box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+      background: white;
     }
 
-    .input-login::placeholder {
-      color: rgba(0,0,0,0.3);
-      font-size: 13px;
+    .icon {
+      margin-right: 8px;
+      color: #888;
     }
 
-    /* INFO USER */
+    .input-login {
+      flex: 1;
+      border: none;
+      outline: none;
+      padding: 12px 5px;
+      font-size: 15px;
+      background: transparent;
+    }
+
+    /* INFO */
     .info {
       text-align: center;
       margin-top: 6px;
     }
 
-    #companyUser {
-      font-size: 13px;
-      color: #888;
-    }
-
-    #nikFull {
-      font-size: 14px;
-      font-weight: bold;
-      color: #3b82f6;
-    }
-
-    #namaUser {
-      font-size: 15px;
-      font-weight: bold;
-    }
-
-    #lokasiUser {
-      font-size: 12px;
-      color: #666;
-    }
-
-    #statusUser {
-      font-size: 13px;
-      font-weight: bold;
-    }
+    #companyUser { font-size: 13px; color: #888; }
+    #nikFull { font-size: 14px; font-weight: bold; color: #3b82f6; }
+    #namaUser { font-size: 15px; font-weight: bold; }
+    #lokasiUser { font-size: 12px; color: #666; }
+    #statusUser { font-size: 13px; font-weight: bold; }
 
     video, img {
       width: 100%;
@@ -123,26 +112,13 @@
       margin-top: 12px;
       border-radius: 12px;
       border: none;
-      font-size: 15px;
       font-weight: bold;
-      transition: 0.2s;
     }
 
     .btn-foto { background: #3b82f6; color: white; }
     .btn-masuk { background: #10b981; color: white; }
     .btn-pulang { background: #ef4444; color: white; }
 
-    button:active {
-      transform: scale(0.97);
-    }
-
-    #msg {
-      margin-top: 15px;
-      text-align: center;
-      font-weight: bold;
-    }
-
-    /* SUCCESS SCREEN */
     #successScreen {
       display:none;
       position:fixed;
@@ -153,7 +129,6 @@
       background:#f1f5f9;
       justify-content:center;
       align-items:center;
-      flex-direction:column;
       z-index:999;
     }
   </style>
@@ -165,14 +140,17 @@
 
 <div class="container">
 
-  <!-- LOGIN -->
   <div class="card">
 
-    <div class="jam" id="jamWIB">--:--:-- WIB</div>
+    <div class="jam" id="jamWIB"></div>
 
     <div class="form-group">
       <label>Masukkan NIK</label>
-      <input type="text" id="nik" class="input-login" placeholder="Contoh: 12345678">
+
+      <div class="input-wrapper">
+        <span class="icon">🔢</span>
+        <input type="text" id="nik" class="input-login" placeholder="Contoh: 12345678">
+      </div>
     </div>
 
     <div class="info" id="companyUser"></div>
@@ -183,24 +161,19 @@
 
   </div>
 
-  <!-- CAMERA -->
   <div class="card">
     <video id="video" autoplay playsinline></video>
     <img id="preview" style="display:none;">
-    <button id="btnFoto" class="btn-foto" onclick="toggleFoto()">📸 Ambil Foto</button>
+    <button onclick="toggleFoto()" class="btn-foto">📸 Ambil Foto</button>
   </div>
 
-  <!-- ACTION -->
   <div class="card">
-    <button class="btn-masuk" onclick="kirim('Masuk')">✅ Masuk</button>
-    <button class="btn-pulang" onclick="kirim('Pulang')">🏠 Pulang</button>
+    <button onclick="kirim('Masuk')" class="btn-masuk">Masuk</button>
+    <button onclick="kirim('Pulang')" class="btn-pulang">Pulang</button>
   </div>
-
-  <div id="msg"></div>
 
 </div>
 
-<!-- SUCCESS SCREEN -->
 <div id="successScreen">
   <div style="background:white;padding:30px;border-radius:20px;text-align:center;">
     <h2 style="color:#10b981;">✔ Absensi Berhasil</h2>
@@ -208,141 +181,107 @@
   </div>
 </div>
 
-<audio id="successSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
-<audio id="errorSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
-
 <script>
-let userData = null;
-let fotoBase64 = "";
-let sudahFoto = false;
+let userData=null,fotoBase64="",sudahFoto=false;
+const nikInput=document.getElementById("nik");
 
-const nikInput = document.getElementById("nik");
+// AUTO FOCUS
+window.onload=()=>nikInput.focus();
 
 // JAM WIB
-function updateJam() {
-  const now = new Date();
-  const wib = new Date(now.getTime() + (7 * 60 * 60 * 1000) - (now.getTimezoneOffset()*60000));
-  document.getElementById("jamWIB").innerText = wib.toTimeString().split(" ")[0] + " WIB";
-}
-setInterval(updateJam, 1000);
-updateJam();
+setInterval(()=>{
+ let now=new Date();
+ let wib=new Date(now.getTime()+(7*60*60*1000)-(now.getTimezoneOffset()*60000));
+ document.getElementById("jamWIB").innerText=wib.toTimeString().split(" ")[0]+" WIB";
+},1000);
 
-// INPUT ANGKA SAJA
-nikInput.addEventListener("keypress", e => {
-  if (!/[0-9]/.test(e.key)) e.preventDefault();
+// ONLY NUMBER
+nikInput.addEventListener("keypress",e=>{
+ if(!/[0-9]/.test(e.key)) e.preventDefault();
 });
 
-// AUTO CEK USER
-nikInput.addEventListener("input", () => {
-  let nik = nikInput.value;
-  if (nik.length >= 4) cekUser(nik.slice(-4));
-  else resetUI();
+// CEK USER
+nikInput.addEventListener("input",()=>{
+ let nik=nikInput.value;
+ if(nik.length>=4) cekUser(nik.slice(-4));
+ else resetUI();
 });
 
-// RESET
-function resetUI() {
-  userData = null;
-  document.getElementById("companyUser").innerText = "";
-  document.getElementById("nikFull").innerText = "";
-  document.getElementById("namaUser").innerText = "";
-  document.getElementById("statusUser").innerText = "";
+function resetUI(){
+ userData=null;
+ companyUser.innerText="";
+ nikFull.innerText="";
+ namaUser.innerText="";
+ statusUser.innerText="";
 }
 
-// GET USER
-function cekUser(nik) {
-  fetch("YOUR_WEB_APP_URL?action=getUser&nik=" + nik)
-  .then(res => res.json())
-  .then(res => {
-    if (res.status === "success") {
-      userData = res;
-      document.getElementById("companyUser").innerText = res.company || "";
-      document.getElementById("nikFull").innerText = res.nik;
-      document.getElementById("namaUser").innerText = res.nama;
-      cekStatus(res.nik);
-    } else {
-      resetUI();
-      document.getElementById("namaUser").innerText = "User tidak ditemukan";
-    }
-  });
-}
-
-// STATUS
-function cekStatus(nik) {
-  fetch("YOUR_WEB_APP_URL?action=cekStatus&nik=" + nik)
-  .then(res => res.json())
-  .then(res => {
-    let txt = "";
-    if (res.masuk) txt += "✔ Masuk ";
-    if (res.pulang) txt += "✔ Pulang";
-    if (!txt) txt = "Belum absen hari ini";
-    document.getElementById("statusUser").innerText = txt;
-  });
+// API USER
+function cekUser(nik){
+ fetch("YOUR_WEB_APP_URL?action=getUser&nik="+nik)
+ .then(r=>r.json())
+ .then(r=>{
+  if(r.status==="success"){
+   userData=r;
+   companyUser.innerText=r.company||"";
+   nikFull.innerText=r.nik;
+   namaUser.innerText=r.nama;
+  }else{
+   resetUI();
+   namaUser.innerText="User tidak ditemukan";
+  }
+ });
 }
 
 // CAMERA
-navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-.then(stream => document.getElementById("video").srcObject = stream);
+navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}})
+.then(s=>video.srcObject=s);
 
 // FOTO
-function toggleFoto() {
-  let video = document.getElementById("video");
-  let preview = document.getElementById("preview");
-
-  if (!sudahFoto) {
-    let canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext("2d").drawImage(video, 0, 0);
-
-    fotoBase64 = canvas.toDataURL("image/jpeg");
-
-    preview.src = fotoBase64;
-    preview.style.display = "block";
-    video.style.display = "none";
-    sudahFoto = true;
-  } else {
-    preview.style.display = "none";
-    video.style.display = "block";
-    fotoBase64 = "";
-    sudahFoto = false;
-  }
+function toggleFoto(){
+ if(!sudahFoto){
+  let c=document.createElement("canvas");
+  c.width=video.videoWidth;
+  c.height=video.videoHeight;
+  c.getContext("2d").drawImage(video,0,0);
+  fotoBase64=c.toDataURL("image/jpeg");
+  preview.src=fotoBase64;
+  preview.style.display="block";
+  video.style.display="none";
+  sudahFoto=true;
+ }else{
+  preview.style.display="none";
+  video.style.display="block";
+  fotoBase64="";
+  sudahFoto=false;
+ }
 }
 
 // KIRIM
-function kirim(status) {
-  if (!userData || !fotoBase64) {
-    alert("Lengkapi data dulu");
-    return;
-  }
+function kirim(status){
+ if(!userData||!fotoBase64){
+  alert("Lengkapi data dulu");return;
+ }
 
-  navigator.geolocation.getCurrentPosition(pos => {
-
-    fetch("YOUR_WEB_APP_URL", {
-      method: "POST",
-      body: JSON.stringify({
-        nik: userData.nik,
-        status: status,
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude,
-        alamat: document.getElementById("lokasiUser").innerText,
-        foto: fotoBase64
-      })
-    })
-    .then(res => res.json())
-    .then(res => {
-
-      if (res.status === "success") {
-        successSound.play();
-        document.getElementById("successScreen").style.display = "flex";
-
-        setTimeout(() => location.reload(), 3000);
-      } else {
-        errorSound.play();
-      }
-
-    });
-
+ navigator.geolocation.getCurrentPosition(pos=>{
+  fetch("YOUR_WEB_APP_URL",{
+   method:"POST",
+   body:JSON.stringify({
+    nik:userData.nik,
+    status,
+    lat:pos.coords.latitude,
+    lng:pos.coords.longitude,
+    alamat:"-",
+    foto:fotoBase64
+   })
+  })
+  .then(r=>r.json())
+  .then(r=>{
+   if(r.status==="success"){
+    successScreen.style.display="flex";
+    setTimeout(()=>location.reload(),3000);
+   }
   });
+ });
 }
 </script>
 
