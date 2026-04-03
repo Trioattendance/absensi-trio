@@ -14,12 +14,12 @@
     .header {
       text-align: center;
       padding: 15px;
-      font-weight: bold;
       font-size: 18px;
       background: #3b82f6;
       color: white;
       border-bottom-left-radius: 20px;
       border-bottom-right-radius: 20px;
+      font-weight: bold;
     }
 
     .container {
@@ -36,7 +36,6 @@
       margin-top: 15px;
     }
 
-    /* LOGIN STYLE INPUT */
     .input-login {
       width: 100%;
       padding: 12px;
@@ -44,7 +43,6 @@
       border: 1px solid #ddd;
       font-size: 16px;
       text-align: center;
-      box-sizing: border-box;
     }
 
     .input-login:focus {
@@ -53,31 +51,35 @@
       box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
     }
 
-    .input-login::placeholder {
-      color: rgba(0,0,0,0.3);
+    .info {
+      text-align: center;
+      margin-top: 5px;
+    }
+
+    #companyUser {
       font-size: 13px;
+      color: #888;
     }
 
     #nikFull {
-      text-align: center;
-      font-weight: bold;
-      margin-top: 10px;
-      color: #3b82f6;
       font-size: 15px;
+      font-weight: bold;
+      color: #3b82f6;
     }
 
     #namaUser {
-      text-align: center;
-      font-weight: bold;
-      margin-top: 5px;
       font-size: 16px;
+      font-weight: bold;
     }
 
-    #lokasiUser, #statusUser {
-      text-align: center;
+    #lokasiUser {
       font-size: 12px;
       color: #666;
-      margin-top: 5px;
+    }
+
+    #statusUser {
+      font-size: 13px;
+      font-weight: bold;
     }
 
     video, img {
@@ -117,10 +119,12 @@
   <!-- LOGIN -->
   <div class="card">
     <input type="text" id="nik" class="input-login" placeholder="Masukkan NIK">
-    <div id="nikFull"></div>
-    <div id="namaUser"></div>
-    <div id="lokasiUser"></div>
-    <div id="statusUser"></div>
+
+    <div class="info" id="companyUser"></div>
+    <div class="info" id="nikFull"></div>
+    <div class="info" id="namaUser"></div>
+    <div class="info" id="lokasiUser"></div>
+    <div class="info" id="statusUser"></div>
   </div>
 
   <!-- CAMERA -->
@@ -150,21 +154,35 @@ let sudahFoto = false;
 
 const nikInput = document.getElementById("nik");
 
-// EVENT STABIL
+// AUTO FOCUS
+window.onload = () => nikInput.focus();
+
+// ONLY NUMBER
+nikInput.addEventListener("keypress", e => {
+  if (!/[0-9]/.test(e.key)) e.preventDefault();
+});
+
+// EVENT
 nikInput.addEventListener("input", formatNik);
 
-// FORMAT + SEARCH
+// FORMAT
 function formatNik() {
   let nik = nikInput.value;
 
   if (nik.length >= 4) {
     cekUser(nik.slice(-4));
   } else {
-    userData = null;
-    document.getElementById("nikFull").innerText = "";
-    document.getElementById("namaUser").innerText = "";
-    document.getElementById("statusUser").innerText = "";
+    resetUI();
   }
+}
+
+// RESET UI
+function resetUI() {
+  userData = null;
+  document.getElementById("companyUser").innerText = "";
+  document.getElementById("nikFull").innerText = "";
+  document.getElementById("namaUser").innerText = "";
+  document.getElementById("statusUser").innerText = "";
 }
 
 // CEK USER
@@ -175,15 +193,15 @@ function cekUser(nik) {
     if (res.status === "success") {
       userData = res;
 
-      // 🔥 tampilkan NIK dari database (bukan input)
+      document.getElementById("companyUser").innerText = res.company || "";
       document.getElementById("nikFull").innerText = res.nik;
-
       document.getElementById("namaUser").innerText = res.nama;
+
       cekStatus(res.nik);
     } else {
-      userData = null;
-      document.getElementById("nikFull").innerText = "";
+      resetUI();
       document.getElementById("namaUser").innerText = "User tidak ditemukan";
+      vibrate();
     }
   });
 }
@@ -220,6 +238,7 @@ navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
 function toggleFoto() {
   let video = document.getElementById("video");
   let preview = document.getElementById("preview");
+  let btn = document.getElementById("btnFoto");
 
   if (!sudahFoto) {
     let canvas = document.createElement("canvas");
@@ -232,10 +251,14 @@ function toggleFoto() {
     preview.src = fotoBase64;
     preview.style.display = "block";
     video.style.display = "none";
+
+    btn.innerText = "🔄 Ulang Foto";
     sudahFoto = true;
   } else {
     preview.style.display = "none";
     video.style.display = "block";
+
+    btn.innerText = "📸 Ambil Foto";
     fotoBase64 = "";
     sudahFoto = false;
   }
@@ -245,6 +268,7 @@ function toggleFoto() {
 function kirim(status) {
   if (!userData || !fotoBase64) {
     alert("Lengkapi data dulu");
+    vibrate();
     return;
   }
 
@@ -261,7 +285,20 @@ function kirim(status) {
   .then(res => res.json())
   .then(res => {
     document.getElementById("msg").innerText = res.message;
+
+    if (res.status === "success") {
+      successSound.play();
+      cekStatus(userData.nik);
+    } else {
+      errorSound.play();
+      vibrate();
+    }
   });
+}
+
+// VIBRATE
+function vibrate() {
+  if (navigator.vibrate) navigator.vibrate(200);
 }
 </script>
 
