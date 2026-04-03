@@ -3,40 +3,64 @@
 <head>
   <title>Absensi Karyawan</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <style>
     body {
       font-family: Arial;
       padding: 20px;
       max-width: 400px;
       margin: auto;
+      background: #f5f5f5;
     }
+
+    h2 {
+      text-align: center;
+    }
+
     input, button {
       width: 100%;
       padding: 12px;
       margin-top: 10px;
       font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
     }
+
+    button {
+      border: none;
+      font-weight: bold;
+    }
+
     .btn-masuk {
       background: #28a745;
       color: white;
-      border: none;
     }
+
     .btn-pulang {
       background: #dc3545;
       color: white;
-      border: none;
     }
+
     video, canvas {
       width: 100%;
       margin-top: 10px;
+      border-radius: 10px;
     }
+
     #msg {
       margin-top: 15px;
       font-weight: bold;
       text-align: center;
     }
+
+    #loadingCam {
+      text-align: center;
+      margin-top: 10px;
+      color: #666;
+    }
   </style>
 </head>
+
 <body>
 
 <h2>Absensi Karyawan</h2>
@@ -45,15 +69,17 @@
 <input type="password" id="pin" placeholder="PIN">
 
 <video id="video" autoplay playsinline></video>
-<button onclick="ambilFoto()">Ambil Foto</button>
+<div id="loadingCam">⏳ Menyalakan kamera...</div>
+
+<button onclick="ambilFoto()">📸 Ambil Foto</button>
 <canvas id="canvas" style="display:none;"></canvas>
 
-<button class="btn-masuk" onclick="kirim('Masuk')">Masuk</button>
-<button class="btn-pulang" onclick="kirim('Pulang')">Pulang</button>
+<button class="btn-masuk" onclick="kirim('Masuk')">✅ Masuk</button>
+<button class="btn-pulang" onclick="kirim('Pulang')">🏠 Pulang</button>
 
 <div id="msg"></div>
 
-<!-- 🔊 AUDIO -->
+<!-- AUDIO -->
 <audio id="successSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
 <audio id="errorSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
@@ -62,7 +88,7 @@ let fotoBase64 = "";
 let streamCamera;
 let audioReady = false;
 
-// trigger agar audio boleh jalan di HP
+// trigger audio
 document.body.addEventListener("click", () => {
   audioReady = true;
 }, { once: true });
@@ -70,6 +96,8 @@ document.body.addEventListener("click", () => {
 // START CAMERA
 async function startCamera() {
   try {
+    const loading = document.getElementById("loadingCam");
+
     streamCamera = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: "user" },
       audio: false
@@ -80,6 +108,7 @@ async function startCamera() {
 
     video.onloadedmetadata = () => {
       video.play();
+      loading.style.display = "none";
     };
 
   } catch (err) {
@@ -91,18 +120,20 @@ document.addEventListener("DOMContentLoaded", startCamera);
 
 // AMBIL FOTO
 function ambilFoto() {
-  let canvas = document.getElementById("canvas");
   let video = document.getElementById("video");
 
   if (!video.videoWidth) {
-    alert("Kamera belum siap");
+    alert("Kamera masih loading...");
     return;
   }
+
+  let canvas = document.getElementById("canvas");
 
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
 
   canvas.getContext("2d").drawImage(video, 0, 0);
+
   fotoBase64 = canvas.toDataURL("image/jpeg");
 
   canvas.style.display = "block";
@@ -117,6 +148,9 @@ function kirim(status) {
     alert("Lengkapi data & foto dulu!");
     return;
   }
+
+  let buttons = document.querySelectorAll("button");
+  buttons.forEach(btn => btn.disabled = true);
 
   navigator.geolocation.getCurrentPosition(pos => {
 
@@ -139,7 +173,6 @@ function kirim(status) {
       if (res.status === "success") {
         if (audioReady) document.getElementById("successSound").play();
 
-        // reset
         document.getElementById("nik").value = "";
         document.getElementById("pin").value = "";
         fotoBase64 = "";
@@ -149,10 +182,13 @@ function kirim(status) {
         if (audioReady) document.getElementById("errorSound").play();
       }
 
+      buttons.forEach(btn => btn.disabled = false);
+
     });
 
   }, () => {
     alert("GPS gagal diambil");
+    buttons.forEach(btn => btn.disabled = false);
   });
 }
 </script>
