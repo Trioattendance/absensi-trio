@@ -6,85 +6,126 @@
 
   <style>
     body {
-      font-family: Arial;
-      padding: 20px;
-      max-width: 400px;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f1f5f9;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 420px;
       margin: auto;
-      background: #f5f5f5;
+      padding: 15px;
+    }
+
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin-top: 15px;
     }
 
     h2 {
       text-align: center;
+      margin-bottom: 10px;
     }
 
-    input, button {
+    input {
       width: 100%;
       padding: 12px;
       margin-top: 10px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-
-    button {
-      border: none;
-      font-weight: bold;
-    }
-
-    .btn-masuk {
-      background: #28a745;
-      color: white;
-    }
-
-    .btn-pulang {
-      background: #dc3545;
-      color: white;
-    }
-
-    #cameraBox {
-      position: relative;
-    }
-
-    video, img {
-      width: 100%;
       border-radius: 10px;
+      border: 1px solid #ddd;
+      font-size: 15px;
+    }
+
+    .camera-box video,
+    .camera-box img {
+      width: 100%;
+      border-radius: 12px;
       margin-top: 10px;
     }
 
     #loadingCam {
       text-align: center;
+      font-size: 14px;
+      color: #888;
       margin-top: 5px;
-      color: #666;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
+      border-radius: 12px;
+      border: none;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-foto {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .btn-masuk {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-pulang {
+      background: #ef4444;
+      color: white;
     }
 
     #msg {
       margin-top: 15px;
-      font-weight: bold;
       text-align: center;
+      font-weight: bold;
+    }
+
+    .header {
+      text-align: center;
+      padding: 15px;
+      font-weight: bold;
+      font-size: 18px;
+      background: #3b82f6;
+      color: white;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
     }
   </style>
 </head>
 
 <body>
 
-<h2>Absensi Karyawan</h2>
+<div class="header">📍 Absensi Karyawan</div>
 
-<input type="text" id="nik" placeholder="NIK">
-<input type="password" id="pin" placeholder="PIN">
+<div class="container">
 
-<div id="cameraBox">
-  <video id="video" autoplay playsinline></video>
-  <img id="preview" style="display:none;">
+  <div class="card">
+    <h2>Login</h2>
+    <input type="text" id="nik" placeholder="NIK">
+    <input type="password" id="pin" placeholder="PIN">
+  </div>
+
+  <div class="card camera-box">
+    <video id="video" autoplay playsinline></video>
+    <img id="preview" style="display:none;">
+    <div id="loadingCam">⏳ Menyalakan kamera...</div>
+    <button id="btnFoto" class="btn-foto" onclick="toggleFoto()">📸 Ambil Foto</button>
+  </div>
+
+  <div class="card">
+    <button class="btn-masuk" onclick="kirim('Masuk')">✅ Masuk</button>
+    <button class="btn-pulang" onclick="kirim('Pulang')">🏠 Pulang</button>
+  </div>
+
+  <div id="msg"></div>
+
 </div>
-
-<div id="loadingCam">⏳ Menyalakan kamera...</div>
-
-<button id="btnFoto" onclick="toggleFoto()">📸 Ambil Foto</button>
-
-<button class="btn-masuk" onclick="kirim('Masuk')">✅ Masuk</button>
-<button class="btn-pulang" onclick="kirim('Pulang')">🏠 Pulang</button>
-
-<div id="msg"></div>
 
 <!-- AUDIO -->
 <audio id="successSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
@@ -96,12 +137,10 @@ let streamCamera;
 let audioReady = false;
 let sudahFoto = false;
 
-// trigger audio HP
 document.body.addEventListener("click", () => {
   audioReady = true;
 }, { once: true });
 
-// START CAMERA
 async function startCamera() {
   try {
     const loading = document.getElementById("loadingCam");
@@ -120,13 +159,12 @@ async function startCamera() {
     };
 
   } catch (err) {
-    alert("Kamera tidak bisa diakses: " + err.message);
+    alert("Kamera error: " + err.message);
   }
 }
 
 document.addEventListener("DOMContentLoaded", startCamera);
 
-// TOGGLE FOTO
 function toggleFoto() {
   let video = document.getElementById("video");
   let preview = document.getElementById("preview");
@@ -142,9 +180,7 @@ function toggleFoto() {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
-    let ctx = canvas.getContext("2d");
-    ctx.drawImage(video, 0, 0);
-
+    canvas.getContext("2d").drawImage(video, 0, 0);
     fotoBase64 = canvas.toDataURL("image/jpeg");
 
     preview.src = fotoBase64;
@@ -157,14 +193,12 @@ function toggleFoto() {
   } else {
     preview.style.display = "none";
     video.style.display = "block";
-
     btn.innerText = "📸 Ambil Foto";
     fotoBase64 = "";
     sudahFoto = false;
   }
 }
 
-// KIRIM DATA
 function kirim(status) {
   let nik = document.getElementById("nik").value;
   let pin = document.getElementById("pin").value;
@@ -201,7 +235,6 @@ function kirim(status) {
         document.getElementById("nik").value = "";
         document.getElementById("pin").value = "";
 
-        // reset foto
         document.getElementById("preview").style.display = "none";
         document.getElementById("video").style.display = "block";
         document.getElementById("btnFoto").innerText = "📸 Ambil Foto";
