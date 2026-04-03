@@ -5,118 +5,46 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f1f5f9;
-      margin: 0;
-    }
-
+    body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; }
     .header {
-      text-align: center;
-      padding: 15px;
-      font-size: 18px;
-      background: #3b82f6;
-      color: white;
-      font-weight: bold;
-      border-bottom-left-radius: 20px;
-      border-bottom-right-radius: 20px;
+      text-align: center; padding: 15px; font-size: 18px;
+      background: #3b82f6; color: white; font-weight: bold;
+      border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
     }
-
-    .container {
-      max-width: 420px;
-      margin: auto;
-      padding: 15px;
-    }
-
+    .container { max-width: 420px; margin: auto; padding: 15px; }
     .card {
-      background: white;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      margin-top: 15px;
+      background: white; padding: 20px; border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-top: 15px;
     }
-
-    .jam {
-      text-align: center;
-      font-size: 16px;
-      font-weight: bold;
-      color: #3b82f6;
-      margin-bottom: 12px;
-    }
-
+    .jam { text-align: center; font-size: 16px; font-weight: bold; color: #3b82f6; }
     .input-login {
-      width: 100%;
-      max-width: 220px;
-      margin: auto;
-      display: block;
-      padding: 12px;
-      border-radius: 12px;
-      font-size: 20px;
-      text-align: center;
-      letter-spacing: 3px;
-      font-weight: bold;
+      width: 100%; max-width: 220px; margin: auto; display: block;
+      padding: 12px; border-radius: 12px; font-size: 20px;
+      text-align: center; letter-spacing: 3px; font-weight: bold;
       border: 1px solid rgba(0,0,0,0.1);
     }
-
-    .input-login:focus {
-      border: 2px solid #3b82f6;
-      outline: none;
-    }
-
-    .info {
-      text-align: center;
-      margin-top: 5px;
-      font-size: 14px;
-    }
-
+    .info { text-align: center; margin-top: 5px; font-size: 14px; }
     .badge {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 10px;
-      font-size: 12px;
-      margin: 2px;
-      color: white;
+      display: inline-block; padding: 4px 10px; border-radius: 10px;
+      font-size: 12px; margin: 2px; color: white;
     }
-
     .masuk { background: #10b981; }
     .pulang { background: #ef4444; }
-
-    video, img {
-      width: 100%;
-      border-radius: 12px;
-      margin-top: 10px;
-    }
-
+    video, img { width: 100%; border-radius: 12px; margin-top: 10px; }
     button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 12px;
-      border-radius: 12px;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
+      width: 100%; padding: 14px; margin-top: 12px;
+      border-radius: 12px; border: none; font-weight: bold;
     }
-
-    button:disabled {
-      opacity: 0.5;
-    }
-
+    button:disabled { opacity: 0.5; }
     .btn-foto { background: #3b82f6; color: white; }
     .btn-masuk { background: #10b981; color: white; }
     .btn-pulang { background: #ef4444; color: white; }
 
     #successScreen {
-      display:none;
-      position:fixed;
-      top:0;
-      left:0;
-      width:100%;
-      height:100%;
-      background:#f1f5f9;
-      justify-content:center;
-      align-items:center;
-      flex-direction:column;
-      z-index:999;
+      display:none; position:fixed; top:0; left:0;
+      width:100%; height:100%; background:#f1f5f9;
+      justify-content:center; align-items:center;
+      flex-direction:column; z-index:999;
     }
   </style>
 </head>
@@ -161,14 +89,15 @@
 </div>
 
 <script>
+const API_URL = "https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec";
+
 let userData = null;
 let fotoBase64 = "";
-let sudahFoto = false;
 let lat = 0;
 let lng = 0;
 let debounceTimer;
 
-// ================= JAM =================
+// JAM
 function updateJam() {
   document.getElementById("jamWIB").innerText =
     new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }) + " WIB";
@@ -176,54 +105,48 @@ function updateJam() {
 setInterval(updateJam, 1000);
 updateJam();
 
-// ================= INPUT =================
+// INPUT NIK
 const nikInput = document.getElementById("nik");
 
 nikInput.addEventListener("input", () => {
   clearTimeout(debounceTimer);
-
   debounceTimer = setTimeout(() => {
     let nik = nikInput.value;
-    if (nik.length >= 4) {
-      cekUser(nik.slice(-4));
-    } else {
-      resetUI();
-    }
+    if (nik.length >= 4) cekUser(nik.slice(-4));
+    else resetUI();
   }, 500);
 });
 
-// ================= RESET =================
+// RESET
 function resetUI() {
   userData = null;
   document.getElementById("companyUser").innerText = "";
   document.getElementById("nikFull").innerText = "";
   document.getElementById("namaUser").innerText = "";
   document.getElementById("statusUser").innerText = "";
-
   disableButtons();
 }
 
-// ================= BUTTON =================
+// BUTTON
 function enableButtons() {
   document.getElementById("btnMasuk").disabled = false;
   document.getElementById("btnPulang").disabled = false;
 }
-
 function disableButtons() {
   document.getElementById("btnMasuk").disabled = true;
   document.getElementById("btnPulang").disabled = true;
 }
 
-// ================= CEK USER =================
+// CEK USER
 function cekUser(nik) {
   document.getElementById("namaUser").innerText = "Loading...";
 
-  fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec?action=getUser&nik=" + nik)
+  fetch(API_URL + "?action=getUser&nik=" + nik)
   .then(res => res.json())
   .then(res => {
     if (res.status === "success") {
       userData = res;
-      document.getElementById("companyUser").innerText = res.company;
+      document.getElementById("companyUser").innerText = res.company || "";
       document.getElementById("nikFull").innerText = res.nik;
       document.getElementById("namaUser").innerText = res.nama;
       cekStatus(res.nik);
@@ -231,33 +154,39 @@ function cekUser(nik) {
       resetUI();
       document.getElementById("namaUser").innerText = "User tidak ditemukan";
     }
+  })
+  .catch(err => {
+    console.error(err);
+    document.getElementById("namaUser").innerText = "Server error";
   });
 }
 
-// ================= STATUS =================
+// STATUS
 function cekStatus(nik) {
-  fetch("YOUR_API?action=cekStatus&nik=" + nik)
+  fetch(API_URL + "?action=cekStatus&nik=" + nik)
   .then(res => res.json())
   .then(res => {
     let html = "";
     if (res.masuk) html += `<span class="badge masuk">Masuk</span>`;
     if (res.pulang) html += `<span class="badge pulang">Pulang</span>`;
     if (!html) html = "Belum absen";
-
     document.getElementById("statusUser").innerHTML = html;
+  })
+  .catch(err => {
+    console.error(err);
+    document.getElementById("statusUser").innerText = "Error status";
   });
 }
 
-// ================= GPS =================
+// GPS
 navigator.geolocation.getCurrentPosition(pos => {
   lat = pos.coords.latitude;
   lng = pos.coords.longitude;
-
   document.getElementById("lokasiUser").innerText =
     "📍 " + lat.toFixed(5) + ", " + lng.toFixed(5);
 });
 
-// ================= CAMERA =================
+// CAMERA
 document.getElementById("btnStartCam").onclick = () => {
   navigator.mediaDevices.getUserMedia({ video: true })
   .then(stream => {
@@ -267,11 +196,10 @@ document.getElementById("btnStartCam").onclick = () => {
   });
 };
 
-// ================= FOTO =================
+// FOTO
 document.getElementById("btnFoto").onclick = () => {
   let video = document.getElementById("video");
   let canvas = document.createElement("canvas");
-
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
 
@@ -284,11 +212,11 @@ document.getElementById("btnFoto").onclick = () => {
   enableButtons();
 };
 
-// ================= KIRIM =================
+// KIRIM
 function kirim(status) {
   if (!userData || !fotoBase64) return alert("Lengkapi dulu");
 
-  fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec", {
+  fetch(API_URL, {
     method: "POST",
     body: JSON.stringify({
       nik: userData.nik,
