@@ -30,10 +30,22 @@
 
     .card {
       background: white;
-      padding: 18px;
+      padding: 20px;
       border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       margin-top: 15px;
+    }
+
+    /* LOGIN INPUT STYLE */
+    .form-group {
+      margin-top: 10px;
+    }
+
+    .form-group label {
+      font-size: 13px;
+      color: #666;
+      display: block;
+      margin-bottom: 5px;
     }
 
     .input-login {
@@ -41,8 +53,9 @@
       padding: 12px;
       border-radius: 10px;
       border: 1px solid #ddd;
-      font-size: 16px;
+      font-size: 15px;
       text-align: center;
+      box-sizing: border-box;
     }
 
     .input-login:focus {
@@ -51,9 +64,14 @@
       box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
     }
 
+    .input-login::placeholder {
+      color: rgba(0,0,0,0.3);
+      font-size: 13px;
+    }
+
     .info {
       text-align: center;
-      margin-top: 5px;
+      margin-top: 6px;
     }
 
     #companyUser {
@@ -62,13 +80,13 @@
     }
 
     #nikFull {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: bold;
       color: #3b82f6;
     }
 
     #namaUser {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
     }
 
@@ -94,7 +112,7 @@
       margin-top: 12px;
       border-radius: 12px;
       border: none;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
     }
 
@@ -118,13 +136,18 @@
 
   <!-- LOGIN -->
   <div class="card">
-    <input type="text" id="nik" class="input-login" placeholder="Masukkan NIK">
+
+    <div class="form-group">
+      <label>Masukkan NIK</label>
+      <input type="text" id="nik" class="input-login" placeholder="Contoh: 12345678">
+    </div>
 
     <div class="info" id="companyUser"></div>
     <div class="info" id="nikFull"></div>
     <div class="info" id="namaUser"></div>
     <div class="info" id="lokasiUser"></div>
     <div class="info" id="statusUser"></div>
+
   </div>
 
   <!-- CAMERA -->
@@ -154,19 +177,13 @@ let sudahFoto = false;
 
 const nikInput = document.getElementById("nik");
 
-// AUTO FOCUS
-window.onload = () => nikInput.focus();
-
-// ONLY NUMBER
+// only number
 nikInput.addEventListener("keypress", e => {
   if (!/[0-9]/.test(e.key)) e.preventDefault();
 });
 
-// EVENT
-nikInput.addEventListener("input", formatNik);
-
-// FORMAT
-function formatNik() {
+// input event
+nikInput.addEventListener("input", () => {
   let nik = nikInput.value;
 
   if (nik.length >= 4) {
@@ -174,9 +191,9 @@ function formatNik() {
   } else {
     resetUI();
   }
-}
+});
 
-// RESET UI
+// reset
 function resetUI() {
   userData = null;
   document.getElementById("companyUser").innerText = "";
@@ -185,7 +202,7 @@ function resetUI() {
   document.getElementById("statusUser").innerText = "";
 }
 
-// CEK USER
+// get user
 function cekUser(nik) {
   fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec?action=getUser&nik=" + nik)
   .then(res => res.json())
@@ -201,12 +218,11 @@ function cekUser(nik) {
     } else {
       resetUI();
       document.getElementById("namaUser").innerText = "User tidak ditemukan";
-      vibrate();
     }
   });
 }
 
-// STATUS
+// status
 function cekStatus(nik) {
   fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec?action=cekStatus&nik=" + nik)
   .then(res => res.json())
@@ -219,7 +235,7 @@ function cekStatus(nik) {
   });
 }
 
-// LOKASI
+// lokasi
 navigator.geolocation.getCurrentPosition(pos => {
   fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
   .then(res => res.json())
@@ -228,17 +244,16 @@ navigator.geolocation.getCurrentPosition(pos => {
   });
 });
 
-// CAMERA
+// camera
 navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
 .then(stream => {
   document.getElementById("video").srcObject = stream;
 });
 
-// FOTO
+// foto
 function toggleFoto() {
   let video = document.getElementById("video");
   let preview = document.getElementById("preview");
-  let btn = document.getElementById("btnFoto");
 
   if (!sudahFoto) {
     let canvas = document.createElement("canvas");
@@ -251,24 +266,19 @@ function toggleFoto() {
     preview.src = fotoBase64;
     preview.style.display = "block";
     video.style.display = "none";
-
-    btn.innerText = "🔄 Ulang Foto";
     sudahFoto = true;
   } else {
     preview.style.display = "none";
     video.style.display = "block";
-
-    btn.innerText = "📸 Ambil Foto";
     fotoBase64 = "";
     sudahFoto = false;
   }
 }
 
-// KIRIM
+// kirim
 function kirim(status) {
   if (!userData || !fotoBase64) {
     alert("Lengkapi data dulu");
-    vibrate();
     return;
   }
 
@@ -285,20 +295,7 @@ function kirim(status) {
   .then(res => res.json())
   .then(res => {
     document.getElementById("msg").innerText = res.message;
-
-    if (res.status === "success") {
-      successSound.play();
-      cekStatus(userData.nik);
-    } else {
-      errorSound.play();
-      vibrate();
-    }
   });
-}
-
-// VIBRATE
-function vibrate() {
-  if (navigator.vibrate) navigator.vibrate(200);
 }
 </script>
 
