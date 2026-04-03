@@ -44,27 +44,42 @@
       margin-bottom: 12px;
     }
 
-    /* 🔥 FIX INPUT NIK */
+    /* 🔥 INPUT NIK UPDATE */
     .input-login {
       width: 100%;
-      max-width: 260px;
+      max-width: 220px;
       margin: auto;
       display: block;
 
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #ddd;
+      padding: 12px 10px;
+      border-radius: 12px;
 
       font-size: 20px;
       text-align: center;
-      letter-spacing: 4px;
+      letter-spacing: 3px;
       font-weight: bold;
+
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(0,0,0,0.1);
+
+      transition: all 0.2s ease;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    /* 🔥 PLACEHOLDER */
+    .input-login::placeholder {
+      font-size: 13px;
+      color: rgba(0,0,0,0.35);
+      letter-spacing: 1px;
+      font-weight: normal;
     }
 
     .input-login:focus {
       border: 2px solid #3b82f6;
       outline: none;
-      box-shadow: 0 0 8px rgba(59,130,246,0.3);
+      background: white;
+      box-shadow: 0 0 10px rgba(59,130,246,0.2);
     }
 
     .info {
@@ -115,7 +130,6 @@
 
   <div class="card">
 
-    <!-- 🔥 HARI + JAM WIB -->
     <div class="jam" id="jamWIB">Loading...</div>
 
     <input type="text" id="nik" class="input-login" placeholder="Masukkan NIK">
@@ -158,9 +172,7 @@ let sudahFoto = false;
 
 const nikInput = document.getElementById("nik");
 
-// =======================
-// 🔥 JAM WIB + HARI
-// =======================
+// ================= JAM WIB =================
 function updateJam() {
   const now = new Date();
 
@@ -181,9 +193,7 @@ function updateJam() {
 setInterval(updateJam, 1000);
 updateJam();
 
-// =======================
-// INPUT ONLY NUMBER
-// =======================
+// ================= INPUT ONLY NUMBER =================
 nikInput.addEventListener("keypress", e => {
   if (!/[0-9]/.test(e.key)) e.preventDefault();
 });
@@ -198,9 +208,7 @@ nikInput.addEventListener("input", () => {
   }
 });
 
-// =======================
-// RESET UI
-// =======================
+// ================= RESET UI =================
 function resetUI() {
   userData = null;
   document.getElementById("companyUser").innerText = "";
@@ -209,9 +217,7 @@ function resetUI() {
   document.getElementById("statusUser").innerText = "";
 }
 
-// =======================
-// CEK USER
-// =======================
+// ================= CEK USER =================
 function cekUser(nik) {
   fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec?action=getUser&nik=" + nik)
   .then(res => res.json())
@@ -230,9 +236,7 @@ function cekUser(nik) {
   });
 }
 
-// =======================
-// STATUS
-// =======================
+// ================= STATUS =================
 function cekStatus(nik) {
   fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec?action=cekStatus&nik=" + nik)
   .then(res => res.json())
@@ -245,9 +249,7 @@ function cekStatus(nik) {
   });
 }
 
-// =======================
-// LOKASI
-// =======================
+// ================= LOKASI =================
 navigator.geolocation.getCurrentPosition(pos => {
   fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
   .then(res => res.json())
@@ -256,17 +258,13 @@ navigator.geolocation.getCurrentPosition(pos => {
   });
 });
 
-// =======================
-// CAMERA
-// =======================
+// ================= CAMERA =================
 navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
 .then(stream => {
   document.getElementById("video").srcObject = stream;
 });
 
-// =======================
-// FOTO
-// =======================
+// ================= FOTO =================
 function toggleFoto() {
   let video = document.getElementById("video");
   let preview = document.getElementById("preview");
@@ -291,9 +289,7 @@ function toggleFoto() {
   }
 }
 
-// =======================
-// KIRIM
-// =======================
+// ================= KIRIM =================
 function kirim(status) {
   if (!userData || !fotoBase64) {
     alert("Lengkapi data dulu");
@@ -313,7 +309,6 @@ function kirim(status) {
   })
   .then(res => res.json())
   .then(res => {
-
     if (res.status === "success") {
       successSound.play();
       document.getElementById("successScreen").style.display = "flex";
@@ -329,9 +324,7 @@ function kirim(status) {
   });
 }
 
-// =======================
-// VIBRATE
-// =======================
+// ================= VIBRATE =================
 function vibrate() {
   if (navigator.vibrate) navigator.vibrate(200);
 }
