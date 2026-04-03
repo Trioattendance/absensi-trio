@@ -218,7 +218,7 @@ function disableButtons() {
 function cekUser(nik) {
   document.getElementById("namaUser").innerText = "Loading...";
 
-  fetch(""https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec?action=getUser&nik=" + nik)
+  fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec?action=getUser&nik=" + nik)
   .then(res => res.json())
   .then(res => {
     if (res.status === "success") {
