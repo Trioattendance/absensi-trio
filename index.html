@@ -18,7 +18,8 @@
       background: #3b82f6;
       color: white;
       font-weight: bold;
-      border-radius: 0 0 20px 20px;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
     }
 
     .container {
@@ -52,26 +53,9 @@
       text-align: center;
     }
 
-    .user-card {
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 12px;
-      background: #f9fafb;
+    .info {
       text-align: center;
-      border: 1px solid #eee;
-      display: none;
-    }
-
-    .company { font-size: 12px; color: #888; }
-    .nama { font-size: 15px; font-weight: bold; }
-    .nik { font-size: 13px; color: #3b82f6; }
-    .status { font-size: 13px; font-weight: bold; margin-top: 5px; }
-
-    #lokasiUser {
-      text-align: center;
-      font-size: 12px;
-      color: #666;
-      margin-top: 5px;
+      margin-top: 6px;
     }
 
     video, img {
@@ -93,10 +77,6 @@
     .btn-masuk { background: #10b981; color: white; }
     .btn-pulang { background: #ef4444; color: white; }
 
-    button:disabled {
-      opacity: 0.6;
-    }
-
     #successScreen {
       display:none;
       position:fixed;
@@ -107,8 +87,8 @@
       background:#f1f5f9;
       justify-content:center;
       align-items:center;
-      z-index:999;
       flex-direction:column;
+      z-index:999;
     }
   </style>
 </head>
@@ -121,206 +101,197 @@
 
   <div class="card">
 
-    <div class="jam" id="jamWIB"></div>
+    <div class="jam" id="jamWIB">--:--:-- WIB</div>
 
     <input type="text" id="nik" class="input-login" placeholder="Masukkan NIK">
 
-    <div class="user-card" id="userCard">
-      <div id="companyUser" class="company"></div>
-      <div id="namaUser" class="nama"></div>
-      <div id="nikFull" class="nik"></div>
-      <div id="statusUser" class="status"></div>
-    </div>
-
-    <div id="lokasiUser"></div>
+    <div class="info" id="companyUser"></div>
+    <div class="info" id="nikFull"></div>
+    <div class="info" id="namaUser"></div>
+    <div class="info" id="lokasiUser"></div>
+    <div class="info" id="statusUser"></div>
 
   </div>
 
   <div class="card">
     <video id="video" autoplay playsinline></video>
     <img id="preview" style="display:none;">
-    <button onclick="toggleFoto()" class="btn-foto">📸 Ambil / Ulang Foto</button>
+    <button id="btnFoto" class="btn-foto" onclick="toggleFoto()">📸 Ambil Foto</button>
   </div>
 
   <div class="card">
-    <button onclick="kirim('Masuk')" class="btn-masuk">Masuk</button>
-    <button onclick="kirim('Pulang')" class="btn-pulang">Pulang</button>
+    <button class="btn-masuk" onclick="kirim('Masuk')">✅ Masuk</button>
+    <button class="btn-pulang" onclick="kirim('Pulang')">🏠 Pulang</button>
   </div>
 
 </div>
 
+<!-- SUCCESS SCREEN -->
 <div id="successScreen">
-  <h2 style="color:#10b981;">✔ Absensi Berhasil</h2>
-  <p>Data tersimpan</p>
+  <div style="background:white;padding:30px;border-radius:20px;text-align:center;">
+    <h2 style="color:#10b981;">✔ Absensi Berhasil</h2>
+    <p>Data berhasil disimpan</p>
+  </div>
 </div>
 
 <audio id="successSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
 <audio id="errorSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
 <script>
-let userData=null,fotoBase64="",sudahFoto=false;
-let timeout;
-const nikInput=document.getElementById("nik");
+let userData = null;
+let fotoBase64 = "";
+let sudahFoto = false;
+
+const nikInput = document.getElementById("nik");
 
 // JAM WIB
-setInterval(()=>{
- let now=new Date();
- let wib=new Date(now.getTime()+(7*60*60*1000)-(now.getTimezoneOffset()*60000));
- jamWIB.innerText=wib.toTimeString().split(" ")[0]+" WIB";
-},1000);
+function updateJam() {
+  const now = new Date();
+  const wib = new Date(now.getTime() + (7 * 60 * 60 * 1000) - (now.getTimezoneOffset()*60000));
 
-// INPUT NUMBER
-nikInput.addEventListener("keypress",e=>{
- if(!/[0-9]/.test(e.key)) e.preventDefault();
-});
-
-// AUTO SEARCH (DEBOUNCE)
-nikInput.addEventListener("input",()=>{
- clearTimeout(timeout);
- timeout=setTimeout(()=>{
-   let nik=nikInput.value;
-   if(nik.length>=4) cekUser(nik.slice(-4));
-   else resetUI();
- },300);
-});
-
-// RESET
-function resetUI(){
- userData=null;
- userCard.style.display="none";
- namaUser.innerText="";
- statusUser.innerText="";
+  const jam = wib.toTimeString().split(" ")[0];
+  document.getElementById("jamWIB").innerText = jam + " WIB";
 }
 
-// GET USER
-function cekUser(nik){
- fetch("YOUR_WEB_APP_URL?action=getUser&nik="+nik)
- .then(r=>r.json())
- .then(r=>{
-  if(r.status==="success"){
-   userData=r;
-   companyUser.innerText=r.company||"";
-   namaUser.innerText=r.nama;
-   nikFull.innerText="NIK: "+r.nik;
-   userCard.style.display="block";
-   cekStatus(r.nik);
-  }else{
-   resetUI();
-   statusUser.innerText="User tidak ditemukan";
+setInterval(updateJam, 1000);
+updateJam();
+
+// INPUT ONLY NUMBER
+nikInput.addEventListener("keypress", e => {
+  if (!/[0-9]/.test(e.key)) e.preventDefault();
+});
+
+nikInput.addEventListener("input", () => {
+  let nik = nikInput.value;
+
+  if (nik.length >= 4) {
+    cekUser(nik.slice(-4));
+  } else {
+    resetUI();
   }
- });
+});
+
+// RESET UI
+function resetUI() {
+  userData = null;
+  document.getElementById("companyUser").innerText = "";
+  document.getElementById("nikFull").innerText = "";
+  document.getElementById("namaUser").innerText = "";
+  document.getElementById("statusUser").innerText = "";
+}
+
+// CEK USER
+function cekUser(nik) {
+  fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec?action=getUser&nik=" + nik)
+  .then(res => res.json())
+  .then(res => {
+    if (res.status === "success") {
+      userData = res;
+      document.getElementById("companyUser").innerText = res.company || "";
+      document.getElementById("nikFull").innerText = res.nik;
+      document.getElementById("namaUser").innerText = res.nama;
+      cekStatus(res.nik);
+    } else {
+      resetUI();
+      document.getElementById("namaUser").innerText = "User tidak ditemukan";
+      vibrate();
+    }
+  });
 }
 
 // STATUS
-function cekStatus(nik){
- fetch("YOUR_WEB_APP_URL?action=cekStatus&nik="+nik)
- .then(r=>r.json())
- .then(r=>{
-  let txt="";
-  if(r.masuk && r.pulang) txt="✔ Sudah Masuk & Pulang";
-  else if(r.masuk) txt="✔ Sudah Masuk";
-  else if(r.pulang) txt="✔ Sudah Pulang";
-  else txt="Belum absen";
-  statusUser.innerText=txt;
- });
+function cekStatus(nik) {
+  fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec?action=cekStatus&nik=" + nik)
+  .then(res => res.json())
+  .then(res => {
+    let txt = "";
+    if (res.masuk) txt += "✔ Masuk ";
+    if (res.pulang) txt += "✔ Pulang";
+    if (!txt) txt = "Belum absen hari ini";
+    document.getElementById("statusUser").innerText = txt;
+  });
 }
 
-// AUTO LOKASI
-navigator.geolocation.getCurrentPosition(pos=>{
- fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
- .then(r=>r.json())
- .then(d=>{
-  lokasiUser.innerText="📍 "+d.display_name;
- });
+// LOKASI
+navigator.geolocation.getCurrentPosition(pos => {
+  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("lokasiUser").innerText = "📍 " + data.display_name;
+  });
 });
 
-// CAMERA (FIX ERROR)
-navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}})
-.then(s=>video.srcObject=s)
-.catch(err=>{
-  alert("Kamera tidak tersedia: "+err.message);
+// CAMERA
+navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+.then(stream => {
+  document.getElementById("video").srcObject = stream;
 });
 
 // FOTO
-function toggleFoto(){
- if(!sudahFoto){
-  let c=document.createElement("canvas");
-  c.width=video.videoWidth;
-  c.height=video.videoHeight;
-  c.getContext("2d").drawImage(video,0,0);
-  fotoBase64=c.toDataURL("image/jpeg");
-  preview.src=fotoBase64;
-  preview.style.display="block";
-  video.style.display="none";
-  sudahFoto=true;
- }else{
-  preview.style.display="none";
-  video.style.display="block";
-  fotoBase64="";
-  sudahFoto=false;
- }
+function toggleFoto() {
+  let video = document.getElementById("video");
+  let preview = document.getElementById("preview");
+
+  if (!sudahFoto) {
+    let canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    canvas.getContext("2d").drawImage(video, 0, 0);
+    fotoBase64 = canvas.toDataURL("image/jpeg");
+
+    preview.src = fotoBase64;
+    preview.style.display = "block";
+    video.style.display = "none";
+    sudahFoto = true;
+  } else {
+    preview.style.display = "none";
+    video.style.display = "block";
+    fotoBase64 = "";
+    sudahFoto = false;
+  }
 }
 
 // KIRIM
-function kirim(status){
+function kirim(status) {
+  if (!userData || !fotoBase64) {
+    alert("Lengkapi data dulu");
+    vibrate();
+    return;
+  }
 
- if(!userData||!fotoBase64){
-  alert("Lengkapi data dulu");
-  errorSound.play();
-  navigator.vibrate(200);
-  return;
- }
-
- // DISABLE BUTTON
- document.querySelectorAll("button").forEach(b=>b.disabled=true);
- lokasiUser.innerText="📍 Mengambil lokasi...";
-
- navigator.geolocation.getCurrentPosition(pos=>{
-
-  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
-  .then(r=>r.json())
-  .then(alamatData=>{
-
-   fetch("YOUR_WEB_APP_URL",{
-    method:"POST",
-    body:JSON.stringify({
-     nik:userData.nik,
-     status:status,
-     lat:pos.coords.latitude,
-     lng:pos.coords.longitude,
-     alamat:alamatData.display_name,
-     foto:fotoBase64
+  fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec", {
+    method: "POST",
+    body: JSON.stringify({
+      nik: userData.nik,
+      status: status,
+      lat: 0,
+      lng: 0,
+      foto: fotoBase64
     })
-   })
-   .then(r=>r.json())
-   .then(r=>{
+  })
+  .then(res => res.json())
+  .then(res => {
 
-    document.querySelectorAll("button").forEach(b=>b.disabled=false);
+    if (res.status === "success") {
+      successSound.play();
 
-    if(r.status==="success"){
-     successSound.play();
-     navigator.vibrate(100);
+      document.getElementById("successScreen").style.display = "flex";
 
-     successScreen.style.display="flex";
+      setTimeout(() => {
+        location.reload();
+      }, 3000);
 
-     setTimeout(()=>{
-      resetUI();
-      successScreen.style.display="none";
-      fotoBase64="";
-      sudahFoto=false;
-      preview.style.display="none";
-      video.style.display="block";
-     },2000);
-
-    }else{
-     alert(r.message);
-     errorSound.play();
+    } else {
+      errorSound.play();
+      vibrate();
     }
-   });
-
   });
+}
 
- });
+// VIBRATE
+function vibrate() {
+  if (navigator.vibrate) navigator.vibrate(200);
 }
 </script>
 
