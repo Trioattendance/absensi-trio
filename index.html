@@ -5,6 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
+    .login-group {
+  margin-top: 10px;
+}
+
+.login-group label {
+  font-size: 14px;
+  color: #555;
+}
+
+.login-group input {
+  margin-top: 5px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+}
     body {
       font-family: 'Segoe UI', sans-serif;
       background: #f1f5f9;
@@ -105,11 +122,20 @@
 
 <div class="container">
 
-  <div class="card">
-    <h2>Login</h2>
-    <input type="text" id="nik" placeholder="NIK">
-    <input type="password" id="pin" placeholder="PIN">
+ <div class="card">
+  <h2>Login</h2>
+
+  <div class="login-group">
+    <label>NIK</label>
+    <input type="text" id="nik" placeholder="Masukkan NIK">
   </div>
+
+  <div class="login-group">
+    <label>PIN</label>
+    <input type="password" id="pin" placeholder="Masukkan PIN">
+  </div>
+
+</div>
 
   <div class="card camera-box">
     <video id="video" autoplay playsinline></video>
