@@ -5,46 +5,90 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
-    body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; margin: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f1f5f9;
+      margin: 0;
+    }
+
     .header {
-      text-align: center; padding: 15px; font-size: 18px;
-      background: #3b82f6; color: white; font-weight: bold;
-      border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
+      text-align: center;
+      padding: 15px;
+      font-size: 18px;
+      background: #3b82f6;
+      color: white;
+      font-weight: bold;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
     }
-    .container { max-width: 420px; margin: auto; padding: 15px; }
+
+    .container {
+      max-width: 420px;
+      margin: auto;
+      padding: 15px;
+    }
+
     .card {
-      background: white; padding: 20px; border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-top: 15px;
+      background: white;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin-top: 15px;
     }
-    .jam { text-align: center; font-size: 16px; font-weight: bold; color: #3b82f6; }
+
+    .jam {
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: #3b82f6;
+      margin-bottom: 10px;
+    }
+
     .input-login {
-      width: 100%; max-width: 220px; margin: auto; display: block;
-      padding: 12px; border-radius: 12px; font-size: 20px;
-      text-align: center; letter-spacing: 3px; font-weight: bold;
-      border: 1px solid rgba(0,0,0,0.1);
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      font-size: 15px;
+      text-align: center;
     }
-    .info { text-align: center; margin-top: 5px; font-size: 14px; }
-    .badge {
-      display: inline-block; padding: 4px 10px; border-radius: 10px;
-      font-size: 12px; margin: 2px; color: white;
+
+    .info {
+      text-align: center;
+      margin-top: 6px;
     }
-    .masuk { background: #10b981; }
-    .pulang { background: #ef4444; }
-    video, img { width: 100%; border-radius: 12px; margin-top: 10px; }
+
+    video, img {
+      width: 100%;
+      border-radius: 12px;
+      margin-top: 10px;
+    }
+
     button {
-      width: 100%; padding: 14px; margin-top: 12px;
-      border-radius: 12px; border: none; font-weight: bold;
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
+      border-radius: 12px;
+      border: none;
+      font-weight: bold;
     }
-    button:disabled { opacity: 0.5; }
+
     .btn-foto { background: #3b82f6; color: white; }
     .btn-masuk { background: #10b981; color: white; }
     .btn-pulang { background: #ef4444; color: white; }
 
     #successScreen {
-      display:none; position:fixed; top:0; left:0;
-      width:100%; height:100%; background:#f1f5f9;
-      justify-content:center; align-items:center;
-      flex-direction:column; z-index:999;
+      display:none;
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background:#f1f5f9;
+      justify-content:center;
+      align-items:center;
+      flex-direction:column;
+      z-index:999;
     }
   </style>
 </head>
@@ -56,7 +100,8 @@
 <div class="container">
 
   <div class="card">
-    <div class="jam" id="jamWIB">Loading...</div>
+
+    <div class="jam" id="jamWIB">--:--:-- WIB</div>
 
     <input type="text" id="nik" class="input-login" placeholder="Masukkan NIK">
 
@@ -65,22 +110,23 @@
     <div class="info" id="namaUser"></div>
     <div class="info" id="lokasiUser"></div>
     <div class="info" id="statusUser"></div>
+
   </div>
 
   <div class="card">
-    <button id="btnStartCam" class="btn-foto">🎥 Aktifkan Kamera</button>
-    <video id="video" autoplay playsinline style="display:none;"></video>
+    <video id="video" autoplay playsinline></video>
     <img id="preview" style="display:none;">
-    <button id="btnFoto" class="btn-foto" disabled>📸 Ambil Foto</button>
+    <button id="btnFoto" class="btn-foto" onclick="toggleFoto()">📸 Ambil Foto</button>
   </div>
 
   <div class="card">
-    <button id="btnMasuk" class="btn-masuk" disabled>✅ Masuk</button>
-    <button id="btnPulang" class="btn-pulang" disabled>🏠 Pulang</button>
+    <button class="btn-masuk" onclick="kirim('Masuk')">✅ Masuk</button>
+    <button class="btn-pulang" onclick="kirim('Pulang')">🏠 Pulang</button>
   </div>
 
 </div>
 
+<!-- SUCCESS SCREEN -->
 <div id="successScreen">
   <div style="background:white;padding:30px;border-radius:20px;text-align:center;">
     <h2 style="color:#10b981;">✔ Absensi Berhasil</h2>
@@ -88,60 +134,55 @@
   </div>
 </div>
 
-<script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec";
+<audio id="successSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+<audio id="errorSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
+<script>
 let userData = null;
 let fotoBase64 = "";
-let lat = 0;
-let lng = 0;
-let debounceTimer;
+let sudahFoto = false;
 
-// JAM
+const nikInput = document.getElementById("nik");
+
+// JAM WIB
 function updateJam() {
-  document.getElementById("jamWIB").innerText =
-    new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }) + " WIB";
+  const now = new Date();
+  const wib = new Date(now.getTime() + (7 * 60 * 60 * 1000) - (now.getTimezoneOffset()*60000));
+
+  const jam = wib.toTimeString().split(" ")[0];
+  document.getElementById("jamWIB").innerText = jam + " WIB";
 }
+
 setInterval(updateJam, 1000);
 updateJam();
 
-// INPUT NIK
-const nikInput = document.getElementById("nik");
-
-nikInput.addEventListener("input", () => {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => {
-    let nik = nikInput.value;
-    if (nik.length >= 4) cekUser(nik.slice(-4));
-    else resetUI();
-  }, 500);
+// INPUT ONLY NUMBER
+nikInput.addEventListener("keypress", e => {
+  if (!/[0-9]/.test(e.key)) e.preventDefault();
 });
 
-// RESET
+nikInput.addEventListener("input", () => {
+  let nik = nikInput.value;
+
+  if (nik.length >= 4) {
+    cekUser(nik.slice(-4));
+  } else {
+    resetUI();
+  }
+});
+
+// RESET UI
 function resetUI() {
   userData = null;
   document.getElementById("companyUser").innerText = "";
   document.getElementById("nikFull").innerText = "";
   document.getElementById("namaUser").innerText = "";
   document.getElementById("statusUser").innerText = "";
-  disableButtons();
-}
-
-// BUTTON
-function enableButtons() {
-  document.getElementById("btnMasuk").disabled = false;
-  document.getElementById("btnPulang").disabled = false;
-}
-function disableButtons() {
-  document.getElementById("btnMasuk").disabled = true;
-  document.getElementById("btnPulang").disabled = true;
 }
 
 // CEK USER
 function cekUser(nik) {
-  document.getElementById("namaUser").innerText = "Loading...";
-
-  fetch(API_URL + "?action=getUser&nik=" + nik)
+  fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec?action=getUser&nik=" + nik)
   .then(res => res.json())
   .then(res => {
     if (res.status === "success") {
@@ -153,91 +194,105 @@ function cekUser(nik) {
     } else {
       resetUI();
       document.getElementById("namaUser").innerText = "User tidak ditemukan";
+      vibrate();
     }
-  })
-  .catch(err => {
-    console.error(err);
-    document.getElementById("namaUser").innerText = "Server error";
   });
 }
 
 // STATUS
 function cekStatus(nik) {
-  fetch(API_URL + "?action=cekStatus&nik=" + nik)
+  fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec?action=cekStatus&nik=" + nik)
   .then(res => res.json())
   .then(res => {
-    let html = "";
-    if (res.masuk) html += `<span class="badge masuk">Masuk</span>`;
-    if (res.pulang) html += `<span class="badge pulang">Pulang</span>`;
-    if (!html) html = "Belum absen";
-    document.getElementById("statusUser").innerHTML = html;
-  })
-  .catch(err => {
-    console.error(err);
-    document.getElementById("statusUser").innerText = "Error status";
+    let txt = "";
+    if (res.masuk) txt += "✔ Masuk ";
+    if (res.pulang) txt += "✔ Pulang";
+    if (!txt) txt = "Belum absen hari ini";
+    document.getElementById("statusUser").innerText = txt;
   });
 }
 
-// GPS
+// LOKASI
 navigator.geolocation.getCurrentPosition(pos => {
-  lat = pos.coords.latitude;
-  lng = pos.coords.longitude;
-  document.getElementById("lokasiUser").innerText =
-    "📍 " + lat.toFixed(5) + ", " + lng.toFixed(5);
+  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("lokasiUser").innerText = "📍 " + data.display_name;
+  });
 });
 
 // CAMERA
-document.getElementById("btnStartCam").onclick = () => {
-  navigator.mediaDevices.getUserMedia({ video: true })
-  .then(stream => {
-    document.getElementById("video").srcObject = stream;
-    document.getElementById("video").style.display = "block";
-    document.getElementById("btnFoto").disabled = false;
-  });
-};
+navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+.then(stream => {
+  document.getElementById("video").srcObject = stream;
+});
 
 // FOTO
-document.getElementById("btnFoto").onclick = () => {
+function toggleFoto() {
   let video = document.getElementById("video");
-  let canvas = document.createElement("canvas");
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+  let preview = document.getElementById("preview");
 
-  canvas.getContext("2d").drawImage(video, 0, 0);
-  fotoBase64 = canvas.toDataURL("image/jpeg");
+  if (!sudahFoto) {
+    let canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
 
-  document.getElementById("preview").src = fotoBase64;
-  document.getElementById("preview").style.display = "block";
+    canvas.getContext("2d").drawImage(video, 0, 0);
+    fotoBase64 = canvas.toDataURL("image/jpeg");
 
-  enableButtons();
-};
+    preview.src = fotoBase64;
+    preview.style.display = "block";
+    video.style.display = "none";
+    sudahFoto = true;
+  } else {
+    preview.style.display = "none";
+    video.style.display = "block";
+    fotoBase64 = "";
+    sudahFoto = false;
+  }
+}
 
 // KIRIM
 function kirim(status) {
-  if (!userData || !fotoBase64) return alert("Lengkapi dulu");
+  if (!userData || !fotoBase64) {
+    alert("Lengkapi data dulu");
+    vibrate();
+    return;
+  }
 
-  fetch(API_URL, {
+  fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec", {
     method: "POST",
     body: JSON.stringify({
       nik: userData.nik,
       status: status,
-      lat: lat,
-      lng: lng,
+      lat: 0,
+      lng: 0,
       foto: fotoBase64
     })
   })
   .then(res => res.json())
   .then(res => {
+
     if (res.status === "success") {
+      successSound.play();
+
       document.getElementById("successScreen").style.display = "flex";
-      setTimeout(() => location.reload(), 3000);
+
+      setTimeout(() => {
+        location.reload();
+      }, 3000);
+
+    } else {
+      errorSound.play();
+      vibrate();
     }
   });
 }
 
-document.getElementById("btnMasuk").onclick = () => kirim("Masuk");
-document.getElementById("btnPulang").onclick = () => kirim("Pulang");
-
+// VIBRATE
+function vibrate() {
+  if (navigator.vibrate) navigator.vibrate(200);
+}
 </script>
 
 </body>
