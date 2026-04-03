@@ -58,10 +58,17 @@
       box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
     }
 
+    #nikFull {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 8px;
+      color: #3b82f6;
+    }
+
     #namaUser {
       text-align: center;
       font-weight: bold;
-      margin-top: 10px;
+      margin-top: 5px;
     }
 
     #lokasiUser {
@@ -119,15 +126,14 @@
 
 <div class="container">
 
-  <!-- INPUT NIK -->
   <div class="card">
     <input type="text" id="nik" placeholder="Masukkan NIK" oninput="formatNik()">
+    <div id="nikFull"></div>
     <div id="namaUser"></div>
     <div id="lokasiUser"></div>
     <div id="statusUser"></div>
   </div>
 
-  <!-- CAMERA -->
   <div class="card">
     <video id="video" autoplay playsinline></video>
     <img id="preview" style="display:none;">
@@ -135,7 +141,6 @@
     <button id="btnFoto" class="btn-foto" onclick="toggleFoto()">📸 Ambil Foto</button>
   </div>
 
-  <!-- ACTION -->
   <div class="card">
     <button class="btn-masuk" onclick="kirim('Masuk')">✅ Masuk</button>
     <button class="btn-pulang" onclick="kirim('Pulang')">🏠 Pulang</button>
@@ -145,7 +150,6 @@
 
 </div>
 
-<!-- AUDIO -->
 <audio id="successSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
 <audio id="errorSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
@@ -159,12 +163,17 @@ document.body.addEventListener("click", () => {
   audioReady = true;
 }, { once: true });
 
-// FORMAT NIK (ambil 4 digit belakang)
+// FORMAT NIK
 function formatNik() {
   let nik = document.getElementById("nik").value;
 
+  document.getElementById("nikFull").innerText = nik;
+
   if (nik.length >= 4) {
     cekUser(nik.slice(-4));
+  } else {
+    document.getElementById("namaUser").innerText = "";
+    document.getElementById("statusUser").innerText = "";
   }
 }
 
@@ -197,7 +206,7 @@ function cekStatus(nik) {
   });
 }
 
-// LOKASI → ALAMAT
+// LOKASI
 navigator.geolocation.getCurrentPosition(pos => {
   fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
   .then(res => res.json())
@@ -270,6 +279,11 @@ function kirim(status) {
     if (res.status === "success") {
       if (audioReady) successSound.play();
       cekStatus(userData.nik);
+
+      document.getElementById("nik").value = "";
+      document.getElementById("nikFull").innerText = "";
+      document.getElementById("namaUser").innerText = "";
+      document.getElementById("statusUser").innerText = "";
     } else {
       if (audioReady) errorSound.play();
     }
