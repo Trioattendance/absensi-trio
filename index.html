@@ -52,7 +52,6 @@
       text-align: center;
     }
 
-    /* USER CARD */
     .user-card {
       margin-top: 12px;
       padding: 12px;
@@ -105,6 +104,7 @@
       justify-content:center;
       align-items:center;
       z-index:999;
+      flex-direction:column;
     }
   </style>
 </head>
@@ -121,7 +121,6 @@
 
     <input type="text" id="nik" class="input-login" placeholder="Masukkan NIK">
 
-    <!-- USER CARD -->
     <div class="user-card" id="userCard">
       <div id="companyUser" class="company"></div>
       <div id="namaUser" class="nama"></div>
@@ -136,7 +135,7 @@
   <div class="card">
     <video id="video" autoplay playsinline></video>
     <img id="preview" style="display:none;">
-    <button onclick="toggleFoto()" class="btn-foto">📸 Ambil Foto</button>
+    <button onclick="toggleFoto()" class="btn-foto">📸 Ambil / Ulang Foto</button>
   </div>
 
   <div class="card">
@@ -147,10 +146,12 @@
 </div>
 
 <div id="successScreen">
-  <div style="background:white;padding:30px;border-radius:20px;text-align:center;">
-    <h2 style="color:#10b981;">✔ Absensi Berhasil</h2>
-  </div>
+  <h2 style="color:#10b981;">✔ Absensi Berhasil</h2>
+  <p>Data tersimpan</p>
 </div>
+
+<audio id="successSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+<audio id="errorSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
 <script>
 let userData=null,fotoBase64="",sudahFoto=false;
@@ -160,10 +161,10 @@ const nikInput=document.getElementById("nik");
 setInterval(()=>{
  let now=new Date();
  let wib=new Date(now.getTime()+(7*60*60*1000)-(now.getTimezoneOffset()*60000));
- document.getElementById("jamWIB").innerText=wib.toTimeString().split(" ")[0]+" WIB";
+ jamWIB.innerText=wib.toTimeString().split(" ")[0]+" WIB";
 },1000);
 
-// ONLY NUMBER
+// INPUT NUMBER
 nikInput.addEventListener("keypress",e=>{
  if(!/[0-9]/.test(e.key)) e.preventDefault();
 });
@@ -172,7 +173,15 @@ nikInput.addEventListener("keypress",e=>{
 nikInput.addEventListener("input",()=>{
  let nik=nikInput.value;
  if(nik.length>=4) cekUser(nik.slice(-4));
+ else resetUI();
 });
+
+// RESET
+function resetUI(){
+ userData=null;
+ userCard.style.display="none";
+ namaUser.innerText="";
+}
 
 // GET USER
 function cekUser(nik){
@@ -181,13 +190,10 @@ function cekUser(nik){
  .then(r=>{
   if(r.status==="success"){
    userData=r;
-
    companyUser.innerText=r.company||"";
    namaUser.innerText=r.nama;
    nikFull.innerText="NIK: "+r.nik;
-
    userCard.style.display="block";
-
    cekStatus(r.nik);
   }
  });
@@ -201,10 +207,20 @@ function cekStatus(nik){
   let txt="";
   if(r.masuk && r.pulang) txt="✔ Sudah Masuk & Pulang";
   else if(r.masuk) txt="✔ Sudah Masuk";
+  else if(r.pulang) txt="✔ Sudah Pulang";
   else txt="Belum absen";
   statusUser.innerText=txt;
  });
 }
+
+// AUTO LOKASI
+navigator.geolocation.getCurrentPosition(pos=>{
+ fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
+ .then(r=>r.json())
+ .then(d=>{
+  lokasiUser.innerText="📍 "+d.display_name;
+ });
+});
 
 // CAMERA
 navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}})
@@ -230,21 +246,21 @@ function toggleFoto(){
  }
 }
 
-// 🔥 FIX MOBILE + GPS + ALAMAT
+// KIRIM
 function kirim(status){
 
  if(!userData||!fotoBase64){
   alert("Lengkapi data dulu");
+  errorSound.play();
+  navigator.vibrate(200);
   return;
  }
 
  navigator.geolocation.getCurrentPosition(pos=>{
 
   fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
-  .then(res=>res.json())
+  .then(r=>r.json())
   .then(alamatData=>{
-
-   let alamatUser = alamatData.display_name;
 
    fetch("YOUR_WEB_APP_URL",{
     method:"POST",
@@ -253,24 +269,36 @@ function kirim(status){
      status:status,
      lat:pos.coords.latitude,
      lng:pos.coords.longitude,
-     alamat:alamatUser,
+     alamat:alamatData.display_name,
      foto:fotoBase64
     })
    })
-   .then(res=>res.json())
-   .then(res=>{
-    if(res.status==="success"){
+   .then(r=>r.json())
+   .then(r=>{
+    if(r.status==="success"){
+     successSound.play();
+     navigator.vibrate(100);
+
      successScreen.style.display="flex";
-     setTimeout(()=>location.reload(),3000);
+
+     setTimeout(()=>{
+      resetUI();
+      successScreen.style.display="none";
+      fotoBase64="";
+      sudahFoto=false;
+      preview.style.display="none";
+      video.style.display="block";
+     },2000);
+
     }else{
-     alert(res.message);
+     alert(r.message);
+     errorSound.play();
     }
    });
 
   });
 
  });
-
 }
 </script>
 
