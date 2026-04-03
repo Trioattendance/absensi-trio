@@ -5,28 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
-    .login-group {
-  margin-top: 10px;
-}
-
-.login-group label {
-  font-size: 14px;
-  color: #555;
-}
-
-.login-group input {
-  margin-top: 5px;
-  width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  box-sizing: border-box;
-}
     body {
       font-family: 'Segoe UI', sans-serif;
       background: #f1f5f9;
       margin: 0;
-      padding: 0;
+    }
+
+    .header {
+      text-align: center;
+      padding: 15px;
+      font-weight: bold;
+      font-size: 18px;
+      background: #3b82f6;
+      color: white;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
     }
 
     .container {
@@ -43,22 +36,37 @@
       margin-top: 15px;
     }
 
-    h2 {
-      text-align: center;
-      margin-bottom: 10px;
-    }
-
     input {
       width: 100%;
       padding: 12px;
-      margin-top: 10px;
       border-radius: 10px;
       border: 1px solid #ddd;
-      font-size: 15px;
+      font-size: 16px;
+      text-align: center;
+      letter-spacing: 5px;
     }
 
-    .camera-box video,
-    .camera-box img {
+    #namaUser {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    #lokasiUser {
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    #statusUser {
+      text-align: center;
+      margin-top: 8px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    video, img {
       width: 100%;
       border-radius: 12px;
       margin-top: 10px;
@@ -66,7 +74,7 @@
 
     #loadingCam {
       text-align: center;
-      font-size: 14px;
+      font-size: 13px;
       color: #888;
       margin-top: 5px;
     }
@@ -79,65 +87,34 @@
       border: none;
       font-size: 16px;
       font-weight: bold;
-      cursor: pointer;
     }
 
-    .btn-foto {
-      background: #3b82f6;
-      color: white;
-    }
-
-    .btn-masuk {
-      background: #10b981;
-      color: white;
-    }
-
-    .btn-pulang {
-      background: #ef4444;
-      color: white;
-    }
+    .btn-foto { background: #3b82f6; color: white; }
+    .btn-masuk { background: #10b981; color: white; }
+    .btn-pulang { background: #ef4444; color: white; }
 
     #msg {
       margin-top: 15px;
       text-align: center;
       font-weight: bold;
     }
-
-    .header {
-      text-align: center;
-      padding: 15px;
-      font-weight: bold;
-      font-size: 18px;
-      background: #3b82f6;
-      color: white;
-      border-bottom-left-radius: 20px;
-      border-bottom-right-radius: 20px;
-    }
   </style>
 </head>
 
 <body>
 
-<div class="header"> Absensi Karyawan</div>
+<div class="header">📍 Absensi Karyawan</div>
 
 <div class="container">
 
- <div class="card">
-  <h2>Login</h2>
-
-  <div class="login-group">
-    <label>NIK</label>
-    <input type="text" id="nik" placeholder="Masukkan NIK">
+  <div class="card">
+    <input type="text" id="nik" maxlength="4" placeholder="• • • •" oninput="cekUser()">
+    <div id="namaUser"></div>
+    <div id="lokasiUser"></div>
+    <div id="statusUser"></div>
   </div>
 
-  <div class="login-group">
-    <label>PIN</label>
-    <input type="password" id="pin" placeholder="Masukkan PIN">
-  </div>
-
-</div>
-
-  <div class="card camera-box">
+  <div class="card">
     <video id="video" autoplay playsinline></video>
     <img id="preview" style="display:none;">
     <div id="loadingCam">⏳ Menyalakan kamera...</div>
@@ -153,55 +130,78 @@
 
 </div>
 
-<!-- AUDIO -->
 <audio id="successSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
 <audio id="errorSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
 <script>
 let fotoBase64 = "";
-let streamCamera;
-let audioReady = false;
+let userData = null;
 let sudahFoto = false;
+let audioReady = false;
 
 document.body.addEventListener("click", () => {
   audioReady = true;
 }, { once: true });
 
-async function startCamera() {
-  try {
-    const loading = document.getElementById("loadingCam");
+// CAMERA
+navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+.then(stream => {
+  let video = document.getElementById("video");
+  video.srcObject = stream;
+  video.onloadedmetadata = () => {
+    video.play();
+    document.getElementById("loadingCam").style.display = "none";
+  };
+});
 
-    streamCamera = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user" },
-      audio: false
-    });
+// CEK USER
+function cekUser() {
+  let nik = document.getElementById("nik").value;
+  if (nik.length !== 4) return;
 
-    const video = document.getElementById("video");
-    video.srcObject = streamCamera;
-
-    video.onloadedmetadata = () => {
-      video.play();
-      loading.style.display = "none";
-    };
-
-  } catch (err) {
-    alert("Kamera error: " + err.message);
-  }
+  fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec?action=getUser&nik=" + nik)
+  .then(res => res.json())
+  .then(res => {
+    if (res.status === "success") {
+      userData = res;
+      document.getElementById("namaUser").innerText = res.nama;
+      cekStatus(res.nik);
+    } else {
+      userData = null;
+      document.getElementById("namaUser").innerText = "User tidak ditemukan";
+    }
+  });
 }
 
-document.addEventListener("DOMContentLoaded", startCamera);
+// STATUS
+function cekStatus(nik) {
+  fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec?action=cekStatus&nik=" + nik)
+  .then(res => res.json())
+  .then(res => {
+    let txt = "";
+    if (res.masuk) txt += "✔ Sudah Masuk ";
+    if (res.pulang) txt += "✔ Sudah Pulang";
+    if (!txt) txt = "Belum absen hari ini";
+    document.getElementById("statusUser").innerText = txt;
+  });
+}
 
+// LOKASI (alamat)
+navigator.geolocation.getCurrentPosition(pos => {
+  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
+  .then(res => res.json())
+  .then(data => {
+    document.getElementById("lokasiUser").innerText = "📍 " + data.display_name;
+  });
+});
+
+// FOTO
 function toggleFoto() {
   let video = document.getElementById("video");
   let preview = document.getElementById("preview");
   let btn = document.getElementById("btnFoto");
 
   if (!sudahFoto) {
-    if (!video.videoWidth) {
-      alert("Kamera masih loading...");
-      return;
-    }
-
     let canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -215,7 +215,6 @@ function toggleFoto() {
 
     btn.innerText = "🔄 Ulang Foto";
     sudahFoto = true;
-
   } else {
     preview.style.display = "none";
     video.style.display = "block";
@@ -225,60 +224,32 @@ function toggleFoto() {
   }
 }
 
+// KIRIM
 function kirim(status) {
-  let nik = document.getElementById("nik").value;
-  let pin = document.getElementById("pin").value;
-
-  if (!nik || !pin || !fotoBase64) {
-    alert("Lengkapi data & foto dulu!");
+  if (!userData || !fotoBase64) {
+    alert("Lengkapi data dulu");
     return;
   }
 
-  let buttons = document.querySelectorAll("button");
-  buttons.forEach(btn => btn.disabled = true);
-
-  navigator.geolocation.getCurrentPosition(pos => {
-
-    fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec", {
-      method: "POST",
-      body: JSON.stringify({
-        nik: nik,
-        pin: pin,
-        status: status,
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude,
-        foto: fotoBase64
-      })
+  fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec", {
+    method: "POST",
+    body: JSON.stringify({
+      nik: userData.nik,
+      status: status,
+      lat: 0,
+      lng: 0,
+      foto: fotoBase64
     })
-    .then(res => res.json())
-    .then(res => {
-
-      document.getElementById("msg").innerText = res.message;
-
-      if (res.status === "success") {
-        if (audioReady) document.getElementById("successSound").play();
-
-        document.getElementById("nik").value = "";
-        document.getElementById("pin").value = "";
-
-        document.getElementById("preview").style.display = "none";
-        document.getElementById("video").style.display = "block";
-        document.getElementById("btnFoto").innerText = "📸 Ambil Foto";
-
-        fotoBase64 = "";
-        sudahFoto = false;
-
-      } else {
-        if (audioReady) document.getElementById("errorSound").play();
-      }
-
-      buttons.forEach(btn => btn.disabled = false);
-
-    });
-
-  }, () => {
-    alert("GPS gagal diambil");
-    buttons.forEach(btn => btn.disabled = false);
+  })
+  .then(res => res.json())
+  .then(res => {
+    document.getElementById("msg").innerText = res.message;
+    if (res.status === "success") {
+      if (audioReady) successSound.play();
+      cekStatus(userData.nik);
+    } else {
+      if (audioReady) errorSound.play();
+    }
   });
 }
 </script>
