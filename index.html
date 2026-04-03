@@ -41,21 +41,19 @@
       padding: 14px;
       border-radius: 12px;
       border: 1px solid #ddd;
-      font-size: 18px;
+      font-size: 20px;
       text-align: center;
-      box-sizing: border-box;
-      letter-spacing: 1px;
-    }
-
-    input::placeholder {
-      color: rgba(0,0,0,0.3);
-      font-size: 14px;
     }
 
     input:focus {
       outline: none;
       border: 1px solid #3b82f6;
       box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+    }
+
+    input::placeholder {
+      color: rgba(0,0,0,0.3);
+      font-size: 14px;
     }
 
     #nikFull {
@@ -65,37 +63,15 @@
       color: #3b82f6;
     }
 
-    #namaUser {
+    #namaUser, #lokasiUser, #statusUser {
       text-align: center;
-      font-weight: bold;
       margin-top: 5px;
-    }
-
-    #lokasiUser {
-      text-align: center;
-      font-size: 12px;
-      color: #666;
-      margin-top: 5px;
-    }
-
-    #statusUser {
-      text-align: center;
-      margin-top: 8px;
-      font-size: 13px;
-      font-weight: bold;
     }
 
     video, img {
       width: 100%;
       border-radius: 12px;
       margin-top: 10px;
-    }
-
-    #loadingCam {
-      text-align: center;
-      font-size: 13px;
-      color: #888;
-      margin-top: 5px;
     }
 
     button {
@@ -127,7 +103,7 @@
 <div class="container">
 
   <div class="card">
-    <input type="text" id="nik" placeholder="Masukkan NIK" oninput="formatNik()">
+    <input type="text" id="nik" placeholder="Masukkan NIK">
     <div id="nikFull"></div>
     <div id="namaUser"></div>
     <div id="lokasiUser"></div>
@@ -137,7 +113,6 @@
   <div class="card">
     <video id="video" autoplay playsinline></video>
     <img id="preview" style="display:none;">
-    <div id="loadingCam">⏳ Menyalakan kamera...</div>
     <button id="btnFoto" class="btn-foto" onclick="toggleFoto()">📸 Ambil Foto</button>
   </div>
 
@@ -154,24 +129,43 @@
 <audio id="errorSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
 <script>
-let fotoBase64 = "";
 let userData = null;
+let fotoBase64 = "";
 let sudahFoto = false;
-let audioReady = false;
 
-document.body.addEventListener("click", () => {
-  audioReady = true;
-}, { once: true });
+// AUTO FOCUS
+window.onload = () => {
+  document.getElementById("nik").focus();
+};
+
+// EVENT LISTENER (LEBIH STABIL)
+const nikInput = document.getElementById("nik");
+
+nikInput.addEventListener("input", formatNik);
+nikInput.addEventListener("keyup", formatNik);
+
+// HANYA ANGKA
+nikInput.addEventListener("keypress", (e) => {
+  if (!/[0-9]/.test(e.key)) e.preventDefault();
+});
+
+// ENTER = AUTO CEK
+nikInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    formatNik();
+  }
+});
 
 // FORMAT NIK
 function formatNik() {
-  let nik = document.getElementById("nik").value;
+  let nik = nikInput.value || "";
 
   document.getElementById("nikFull").innerText = nik;
 
   if (nik.length >= 4) {
     cekUser(nik.slice(-4));
   } else {
+    userData = null;
     document.getElementById("namaUser").innerText = "";
     document.getElementById("statusUser").innerText = "";
   }
@@ -189,6 +183,7 @@ function cekUser(nik) {
     } else {
       userData = null;
       document.getElementById("namaUser").innerText = "User tidak ditemukan";
+      vibrate();
     }
   });
 }
@@ -218,12 +213,7 @@ navigator.geolocation.getCurrentPosition(pos => {
 // CAMERA
 navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
 .then(stream => {
-  let video = document.getElementById("video");
-  video.srcObject = stream;
-  video.onloadedmetadata = () => {
-    video.play();
-    document.getElementById("loadingCam").style.display = "none";
-  };
+  document.getElementById("video").srcObject = stream;
 });
 
 // FOTO
@@ -259,6 +249,7 @@ function toggleFoto() {
 function kirim(status) {
   if (!userData || !fotoBase64) {
     alert("Lengkapi data dulu");
+    vibrate();
     return;
   }
 
@@ -277,17 +268,18 @@ function kirim(status) {
     document.getElementById("msg").innerText = res.message;
 
     if (res.status === "success") {
-      if (audioReady) successSound.play();
+      successSound.play();
       cekStatus(userData.nik);
-
-      document.getElementById("nik").value = "";
-      document.getElementById("nikFull").innerText = "";
-      document.getElementById("namaUser").innerText = "";
-      document.getElementById("statusUser").innerText = "";
     } else {
-      if (audioReady) errorSound.play();
+      errorSound.play();
+      vibrate();
     }
   });
+}
+
+// VIBRATE HP
+function vibrate() {
+  if (navigator.vibrate) navigator.vibrate(200);
 }
 </script>
 
