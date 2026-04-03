@@ -36,14 +36,36 @@
       margin-top: 15px;
     }
 
+    .nik-box {
+      text-align: center;
+    }
+
     input {
       width: 100%;
-      padding: 12px;
-      border-radius: 10px;
+      padding: 14px;
+      border-radius: 12px;
       border: 1px solid #ddd;
-      font-size: 16px;
+      font-size: 20px;
       text-align: center;
-      letter-spacing: 5px;
+      box-sizing: border-box;
+    }
+
+    input::placeholder {
+      color: rgba(0,0,0,0.3);
+      font-size: 14px;
+    }
+
+    input:focus {
+      outline: none;
+      border: 1px solid #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
+    }
+
+    #nikDisplay {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #666;
+      letter-spacing: 2px;
     }
 
     #namaUser {
@@ -107,8 +129,9 @@
 
 <div class="container">
 
-  <div class="card">
-    <input type="text" id="nik" maxlength="4" placeholder="• • • •" oninput="cekUser()">
+  <div class="card nik-box">
+    <input type="text" id="nik" maxlength="4" placeholder="Masukkan NIK" oninput="formatNik()">
+    <div id="nikDisplay"></div>
     <div id="namaUser"></div>
     <div id="lokasiUser"></div>
     <div id="statusUser"></div>
@@ -143,22 +166,18 @@ document.body.addEventListener("click", () => {
   audioReady = true;
 }, { once: true });
 
-// CAMERA
-navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-.then(stream => {
-  let video = document.getElementById("video");
-  video.srcObject = stream;
-  video.onloadedmetadata = () => {
-    video.play();
-    document.getElementById("loadingCam").style.display = "none";
-  };
-});
+// FORMAT NIK + AUTO SEARCH
+function formatNik() {
+  let nik = document.getElementById("nik").value;
+  document.getElementById("nikDisplay").innerText = nik ? "****" + nik : "";
+
+  if (nik.length === 4) {
+    cekUser(nik);
+  }
+}
 
 // CEK USER
-function cekUser() {
-  let nik = document.getElementById("nik").value;
-  if (nik.length !== 4) return;
-
+function cekUser(nik) {
   fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec?action=getUser&nik=" + nik)
   .then(res => res.json())
   .then(res => {
@@ -179,20 +198,31 @@ function cekStatus(nik) {
   .then(res => res.json())
   .then(res => {
     let txt = "";
-    if (res.masuk) txt += "✔ Sudah Masuk ";
-    if (res.pulang) txt += "✔ Sudah Pulang";
+    if (res.masuk) txt += "✔ Masuk ";
+    if (res.pulang) txt += "✔ Pulang";
     if (!txt) txt = "Belum absen hari ini";
     document.getElementById("statusUser").innerText = txt;
   });
 }
 
-// LOKASI (alamat)
+// LOKASI
 navigator.geolocation.getCurrentPosition(pos => {
   fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
   .then(res => res.json())
   .then(data => {
     document.getElementById("lokasiUser").innerText = "📍 " + data.display_name;
   });
+});
+
+// CAMERA
+navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+.then(stream => {
+  let video = document.getElementById("video");
+  video.srcObject = stream;
+  video.onloadedmetadata = () => {
+    video.play();
+    document.getElementById("loadingCam").style.display = "none";
+  };
 });
 
 // FOTO
