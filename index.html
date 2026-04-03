@@ -218,7 +218,7 @@ function disableButtons() {
 function cekUser(nik) {
   document.getElementById("namaUser").innerText = "Loading...";
 
-  fetch("YOUR_API?action=getUser&nik=" + nik)
+  fetch(""https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec?action=getUser&nik=" + nik)
   .then(res => res.json())
   .then(res => {
     if (res.status === "success") {
@@ -288,7 +288,7 @@ document.getElementById("btnFoto").onclick = () => {
 function kirim(status) {
   if (!userData || !fotoBase64) return alert("Lengkapi dulu");
 
-  fetch("YOUR_API", {
+  fetch(""https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec", {
     method: "POST",
     body: JSON.stringify({
       nik: userData.nik,
