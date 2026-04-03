@@ -93,6 +93,10 @@
     .btn-masuk { background: #10b981; color: white; }
     .btn-pulang { background: #ef4444; color: white; }
 
+    button:disabled {
+      opacity: 0.6;
+    }
+
     #successScreen {
       display:none;
       position:fixed;
@@ -155,6 +159,7 @@
 
 <script>
 let userData=null,fotoBase64="",sudahFoto=false;
+let timeout;
 const nikInput=document.getElementById("nik");
 
 // JAM WIB
@@ -169,11 +174,14 @@ nikInput.addEventListener("keypress",e=>{
  if(!/[0-9]/.test(e.key)) e.preventDefault();
 });
 
-// AUTO SEARCH
+// AUTO SEARCH (DEBOUNCE)
 nikInput.addEventListener("input",()=>{
- let nik=nikInput.value;
- if(nik.length>=4) cekUser(nik.slice(-4));
- else resetUI();
+ clearTimeout(timeout);
+ timeout=setTimeout(()=>{
+   let nik=nikInput.value;
+   if(nik.length>=4) cekUser(nik.slice(-4));
+   else resetUI();
+ },300);
 });
 
 // RESET
@@ -181,6 +189,7 @@ function resetUI(){
  userData=null;
  userCard.style.display="none";
  namaUser.innerText="";
+ statusUser.innerText="";
 }
 
 // GET USER
@@ -195,6 +204,9 @@ function cekUser(nik){
    nikFull.innerText="NIK: "+r.nik;
    userCard.style.display="block";
    cekStatus(r.nik);
+  }else{
+   resetUI();
+   statusUser.innerText="User tidak ditemukan";
   }
  });
 }
@@ -222,9 +234,12 @@ navigator.geolocation.getCurrentPosition(pos=>{
  });
 });
 
-// CAMERA
+// CAMERA (FIX ERROR)
 navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}})
-.then(s=>video.srcObject=s);
+.then(s=>video.srcObject=s)
+.catch(err=>{
+  alert("Kamera tidak tersedia: "+err.message);
+});
 
 // FOTO
 function toggleFoto(){
@@ -256,6 +271,10 @@ function kirim(status){
   return;
  }
 
+ // DISABLE BUTTON
+ document.querySelectorAll("button").forEach(b=>b.disabled=true);
+ lokasiUser.innerText="📍 Mengambil lokasi...";
+
  navigator.geolocation.getCurrentPosition(pos=>{
 
   fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
@@ -275,6 +294,9 @@ function kirim(status){
    })
    .then(r=>r.json())
    .then(r=>{
+
+    document.querySelectorAll("button").forEach(b=>b.disabled=false);
+
     if(r.status==="success"){
      successSound.play();
      navigator.vibrate(100);
