@@ -139,34 +139,40 @@ function ambilGPS(){
     currentLat = pos.coords.latitude;
     currentLng = pos.coords.longitude;
 
+    // default dulu biar tidak kosong
+    currentAlamat = "Lokasi: " + currentLat.toFixed(5)+","+currentLng.toFixed(5);
+    document.getElementById("lokasiUser").innerText = "📍 " + currentAlamat;
+
     fetch(`https://photon.komoot.io/reverse?lat=${currentLat}&lon=${currentLng}`)
-    .then(res=>res.json())
+    .then(res=>{
+      if(!res.ok) throw new Error("API error");
+      return res.json();
+    })
     .then(data=>{
       if(data && data.features && data.features.length > 0){
         let p = data.features[0].properties;
 
-        let alamatParts = [];
+        let parts = [];
 
-        if(p.street) alamatParts.push(p.street);
-        if(p.city) alamatParts.push(p.city);
-        if(p.state) alamatParts.push(p.state);
-        if(p.country) alamatParts.push(p.country);
+        if(p.street) parts.push(p.street);
+        if(p.city) parts.push(p.city);
+        else if(p.county) parts.push(p.county);
 
-        currentAlamat = alamatParts.join(", ");
+        if(p.state) parts.push(p.state);
+        if(p.country) parts.push(p.country);
 
-        if(!currentAlamat || currentAlamat.trim()===""){
-          currentAlamat = "Lokasi: " + currentLat.toFixed(5)+","+currentLng.toFixed(5);
+        let hasil = parts.join(", ");
+
+        if(hasil && hasil.length > 5){
+          currentAlamat = hasil;
         }
-
-      } else {
-        currentAlamat = "Lokasi: " + currentLat.toFixed(5)+","+currentLng.toFixed(5);
       }
 
       document.getElementById("lokasiUser").innerText = "📍 " + currentAlamat;
     })
-    .catch(()=>{
-      currentAlamat = "Lokasi: " + currentLat.toFixed(5)+","+currentLng.toFixed(5);
-      document.getElementById("lokasiUser").innerText = "📍 " + currentAlamat;
+    .catch(err=>{
+      console.log("Alamat fallback:", err);
+      // tidak ubah currentAlamat → tetap koordinat
     });
 
   },()=>{
