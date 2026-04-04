@@ -163,6 +163,11 @@ function ambilGPS(){
 // 🔥 PRIORITAS DETAIL
 if(p.street) parts.push(p.street);
 
+        // 🔥 TAMBAH vilage
+if(p.village) parts.push(p.village);
+else if(p.suburb) parts.push("Kec. " + p.suburb);
+
+
 // 🔥 TAMBAH KECAMATAN
 if(p.district) parts.push("Kec. " + p.district);
 else if(p.suburb) parts.push("Kec. " + p.suburb);
