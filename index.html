@@ -12,32 +12,36 @@
     .jam { text-align:center; font-weight:bold; color:#3b82f6; margin-bottom:10px; }
 
     /* 🔥 UI INPUT BARU (GLASS EFFECT) */
-    .input-login {
-      width:100%;
-      padding:12px;
-      border-radius:14px;
-      text-align:center;
-      font-size:16px;
-      letter-spacing:2px;
-      font-weight:500;
-      border:2px solid rgba(0,0,0,0.2);
-      background:rgba(255,255,255,0.6);
-      backdrop-filter: blur(6px);
-      outline:none;
-      transition:0.2s;
-      box-shadow:0 4px 10px rgba(0,0,0,0.05);
-    }
+   .input-login {
+  width:70%;              /* 🔥 lebih kecil */
+  margin:0 auto;          /* 🔥 center */
+  display:block;
 
-    .input-login::placeholder{
-      color:rgba(0,0,0,0.4);
-      font-size:14px;
-      letter-spacing:1px;
-    }
+  padding:10px;
+  border-radius:12px;
+  text-align:center;
 
-    .input-login:focus{
-      border-color:#3b82f6;
-      background:rgba(255,255,255,0.9);
-    }
+  font-size:15px;         /* 🔥 lebih kecil */
+  letter-spacing:1.5px;
+  font-weight:500;
+
+  border:2px solid rgba(0,0,0,0.2);
+  background:rgba(255,255,255,0.5);
+  backdrop-filter: blur(6px);
+
+  outline:none;
+  transition:0.2s;
+}
+
+.input-login::placeholder{
+  color:rgba(0,0,0,0.4);
+  font-size:13px;
+}
+
+.input-login:focus{
+  border-color:#3b82f6;
+  background:rgba(255,255,255,0.85);
+}
 
     .info { text-align:center; font-size:14px; margin-top:5px; }
     button { width:100%; padding:14px; margin-top:10px; border-radius:12px; border:none; font-weight:bold; }
