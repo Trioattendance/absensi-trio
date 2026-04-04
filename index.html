@@ -136,26 +136,25 @@ function resetUI(){
 // ================= GPS (FIX FINAL) =================
 function ambilGPS(){
   navigator.geolocation.getCurrentPosition(pos=>{
-    currentLat = pos.coords.latitude;
-    currentLng = pos.coords.longitude;
+    currentLat=pos.coords.latitude;
+    currentLng=pos.coords.longitude;
 
-    // tampil awal
-    currentAlamat = "Lokasi: " + currentLat.toFixed(5)+","+currentLng.toFixed(5);
-    document.getElementById("lokasiUser").innerText = "📍 " + currentAlamat;
-
-    // 🔥 pakai Google Maps langsung
-    let link = `https://www.google.com/maps?q=${currentLat},${currentLng}`;
-
-    // tampilkan link sebagai alamat
-    currentAlamat = link;
-
-    document.getElementById("lokasiUser").innerHTML =
-      `📍 <a href="${link}" target="_blank">Lihat Lokasi</a>`;
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLat}&lon=${currentLng}`)
+    .then(res=>res.json())
+    .then(data=>{
+      currentAlamat=data.display_name||"-";
+      document.getElementById("lokasiUser").innerText="📍 "+currentAlamat;
+    })
+    .catch(()=>{
+      currentAlamat="-";
+      document.getElementById("lokasiUser").innerText="📍 Lokasi terdeteksi";
+    });
 
   },()=>{
     document.getElementById("lokasiUser").innerText="GPS tidak aktif";
   });
 }
+
 ambilGPS();
 
 // ================= CAMERA =================
