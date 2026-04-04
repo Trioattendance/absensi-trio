@@ -9,39 +9,43 @@
     .header { text-align:center; padding:15px; background:#3b82f6; color:white; font-weight:bold; border-radius:0 0 20px 20px; }
     .container { max-width:450px; margin:auto; padding:15px; }
     .card { background:white; padding:20px; border-radius:16px; margin-top:15px; box-shadow:0 4px 12px rgba(0,0,0,0.08);}
-    .jam { text-align:center; font-weight:bold; color:#3b82f6; margin-bottom:10px; }
 
-    /* 🔥 UI INPUT BARU (GLASS EFFECT) */
-   .input-login {
-  width:70%;              /* 🔥 lebih kecil */
-  margin:0 auto;          /* 🔥 center */
-  display:block;
+    /* 🔥 UPDATE JAM HORIZONTAL */
+    .jam {
+      text-align:center;
+      font-weight:bold;
+      color:#3b82f6;
+      margin-bottom:10px;
+      font-size:15px;
+      letter-spacing:0.5px;
+    }
 
-  padding:10px;
-  border-radius:12px;
-  text-align:center;
+    .input-login {
+      width:70%;
+      margin:0 auto;
+      display:block;
+      padding:10px;
+      border-radius:12px;
+      text-align:center;
+      font-size:15px;
+      letter-spacing:1.5px;
+      font-weight:500;
+      border:2px solid rgba(0,0,0,0.2);
+      background:rgba(255,255,255,0.5);
+      backdrop-filter: blur(6px);
+      outline:none;
+      transition:0.2s;
+    }
 
-  font-size:15px;         /* 🔥 lebih kecil */
-  letter-spacing:1.5px;
-  font-weight:500;
+    .input-login::placeholder{
+      color:rgba(0,0,0,0.4);
+      font-size:13px;
+    }
 
-  border:2px solid rgba(0,0,0,0.2);
-  background:rgba(255,255,255,0.5);
-  backdrop-filter: blur(6px);
-
-  outline:none;
-  transition:0.2s;
-}
-
-.input-login::placeholder{
-  color:rgba(0,0,0,0.4);
-  font-size:13px;
-}
-
-.input-login:focus{
-  border-color:#3b82f6;
-  background:rgba(255,255,255,0.85);
-}
+    .input-login:focus{
+      border-color:#3b82f6;
+      background:rgba(255,255,255,0.85);
+    }
 
     .info { text-align:center; font-size:14px; margin-top:5px; }
     button { width:100%; padding:14px; margin-top:10px; border-radius:12px; border:none; font-weight:bold; }
@@ -62,7 +66,6 @@
 <div class="card">
   <div class="jam" id="jamWIB">Loading...</div>
 
-  <!-- 🔥 UPDATED INPUT -->
   <input type="text" id="nik" class="input-login" placeholder="Masukkan 4 digit terakhir NIK" maxlength="10">
 
   <div class="info" id="companyUser"></div>
@@ -116,11 +119,16 @@ let currentAlamatLink = "";
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec";
 
-// ================= JAM =================
+// ================= JAM UPDATE =================
 function updateJam(){
   const now = new Date();
+
+  const hari = now.toLocaleDateString("id-ID", { weekday: 'long' });
+  const tanggal = now.toLocaleDateString("id-ID", { day:'2-digit', month:'long', year:'numeric' });
   const waktu = now.toLocaleTimeString("id-ID",{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  document.getElementById("jamWIB").innerText = waktu + " WIB";
+
+  document.getElementById("jamWIB").innerText =
+    `${hari}, ${tanggal} | ${waktu} WIB`;
 }
 setInterval(updateJam,1000); updateJam();
 
@@ -182,14 +190,11 @@ function ambilGPS(){
     currentLat = pos.coords.latitude;
     currentLng = pos.coords.longitude;
 
-    // link maps tetap
     currentAlamatLink = "https://www.google.com/maps?q=" + currentLat + "," + currentLng;
 
-    // default dulu
     currentAlamatText = "Mendeteksi lokasi...";
     document.getElementById("lokasiUser").innerText = "📍 " + currentAlamatText;
 
-    // 🔥 ambil alamat lagi (Photon)
     fetch(`https://photon.komoot.io/reverse?lat=${currentLat}&lon=${currentLng}`)
     .then(res=>res.json())
     .then(data=>{
@@ -197,27 +202,13 @@ function ambilGPS(){
         let p = data.features[0].properties;
 
         let parts = [];
-
         if(p.street) parts.push(p.street);
-
-        if(p.village) parts.push( p.village);
-        else if(p.suburb) parts.push("Kec. " + p.suburb);
-
-        if(p.district) parts.push("Kec. " + p.district);
-        else if(p.suburb) parts.push("Kec. " + p.suburb);
-
+        if(p.village) parts.push(p.village);
         if(p.city) parts.push(p.city);
-        else if(p.county) parts.push(p.county);
-
         if(p.state) parts.push(p.state);
 
         let hasil = parts.join(", ");
-
-        if(hasil && hasil.length > 5){
-          currentAlamatText = hasil;
-        } else {
-          currentAlamatText = "Lokasi ditemukan";
-        }
+        currentAlamatText = hasil || "Lokasi ditemukan";
       } else {
         currentAlamatText = "Lokasi ditemukan";
       }
