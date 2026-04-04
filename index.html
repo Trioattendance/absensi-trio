@@ -140,29 +140,43 @@ function ambilGPS(){
     currentLat = pos.coords.latitude;
     currentLng = pos.coords.longitude;
 
-    // default aman
+    // default dulu (anti kosong)
     currentAlamat = "Lokasi: " + currentLat.toFixed(5)+","+currentLng.toFixed(5);
     document.getElementById("lokasiUser").innerText = "📍 " + currentAlamat;
 
-    fetch(`https://photon.komoot.io/reverse?lat=${currentLat}&lon=${currentLng}`)
+    const API_KEY = "pk.11864b21349b8340258c5fd6bcbf4be0";
+
+    fetch(`https://us1.locationiq.com/v1/reverse?key=${API_KEY}&lat=${currentLat}&lon=${currentLng}&format=json`)
     .then(res=>res.json())
     .then(data=>{
-      if(data && data.features && data.features.length > 0){
-        let p = data.features[0].properties;
+      if(data && data.address){
 
+        let a = data.address;
         let parts = [];
 
-        if(p.street) parts.push(p.street);
-        if(p.city) parts.push(p.village);
-        if(p.city) parts.push(p.city);
-        if(p.state) parts.push(p.state);
-        if(p.country) parts.push(p.country);
+        // 🔥 PRIORITAS DETAIL
+        if(a.road) parts.push(a.road);
+        else if(a.neighbourhood) parts.push(a.neighbourhood);
+        else if(a.suburb) parts.push(a.suburb);
+        else if(a.village) parts.push(a.village);
+
+        // kota
+        if(a.city) parts.push(a.city);
+        else if(a.county) parts.push(a.county);
+
+        // provinsi & negara
+        if(a.state) parts.push(a.state);
+        if(a.country) parts.push(a.country);
 
         let hasil = parts.join(", ");
 
         if(hasil && hasil.length > 5){
           currentAlamat = hasil;
         }
+
+      } else if(data.display_name){
+        // fallback dari API
+        currentAlamat = data.display_name;
       }
 
       document.getElementById("lokasiUser").innerText = "📍 " + currentAlamat;
@@ -175,7 +189,6 @@ function ambilGPS(){
     document.getElementById("lokasiUser").innerText="GPS tidak aktif";
   });
 }
-
 ambilGPS();
 
 // ================= CAMERA =================
