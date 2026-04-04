@@ -139,60 +139,18 @@ function ambilGPS(){
     currentLat = pos.coords.latitude;
     currentLng = pos.coords.longitude;
 
-    // default dulu
+    // tampil awal
     currentAlamat = "Lokasi: " + currentLat.toFixed(5)+","+currentLng.toFixed(5);
     document.getElementById("lokasiUser").innerText = "📍 " + currentAlamat;
 
-    // ================= 1. PHOTON =================
-    fetch(`https://photon.komoot.io/reverse?lat=${currentLat}&lon=${currentLng}`)
-    .then(res=>res.json())
-    .then(data=>{
-      if(data && data.features && data.features.length > 0){
-        let p = data.features[0].properties;
+    // 🔥 pakai Google Maps langsung
+    let link = `https://www.google.com/maps?q=${currentLat},${currentLng}`;
 
-        let parts = [];
+    // tampilkan link sebagai alamat
+    currentAlamat = link;
 
-        if(p.street) parts.push(p.street); // 🔥 jalan
-        if(p.city) parts.push(p.city);
-        if(p.state) parts.push(p.state);
-        if(p.country) parts.push(p.country);
-
-        let hasil = parts.join(", ");
-
-        // kalau sudah detail → pakai
-        if(hasil && hasil.length > 10){
-          currentAlamat = hasil;
-          document.getElementById("lokasiUser").innerText = "📍 " + currentAlamat;
-          return; // stop, tidak perlu fallback
-        }
-      }
-
-      // ================= 2. FALLBACK BIGDATA =================
-      return fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${currentLat}&longitude=${currentLng}&localityLanguage=id`);
-    })
-    .then(res=> res ? res.json() : null)
-    .then(data=>{
-      if(data){
-        let parts = [];
-
-        if(data.locality) parts.push(data.locality);
-        if(data.city) parts.push(data.city);
-        if(data.principalSubdivision) parts.push(data.principalSubdivision);
-        if(data.countryName) parts.push(data.countryName);
-
-        let hasil = parts.join(", ");
-
-        if(hasil && hasil.length > 5){
-          currentAlamat = hasil;
-        }
-
-        document.getElementById("lokasiUser").innerText = "📍 " + currentAlamat;
-      }
-    })
-    .catch(()=>{
-      // tetap pakai koordinat
-      document.getElementById("lokasiUser").innerText = "📍 " + currentAlamat;
-    });
+    document.getElementById("lokasiUser").innerHTML =
+      `📍 <a href="${link}" target="_blank">Lihat Lokasi</a>`;
 
   },()=>{
     document.getElementById("lokasiUser").innerText="GPS tidak aktif";
