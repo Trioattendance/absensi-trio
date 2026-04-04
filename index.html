@@ -6,104 +6,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f1f5f9;
-      margin: 0;
-    }
-
-    .header {
-      text-align: center;
-      padding: 15px;
-      font-size: 18px;
-      background: #3b82f6;
-      color: white;
-      font-weight: bold;
-      border-bottom-left-radius: 20px;
-      border-bottom-right-radius: 20px;
-    }
-
-    .container {
-      max-width: 420px;
-      margin: auto;
-      padding: 15px;
-    }
-
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      margin-top: 15px;
-    }
-
-    .jam {
-      text-align: center;
-      font-size: 18px;
-      font-weight: bold;
-      color: #3b82f6;
-      margin-bottom: 12px;
-    }
-
-    .input-login {
-      width: 100%;
-      max-width: 220px;
-      margin: auto;
-      display: block;
-      padding: 12px 10px;
-      border-radius: 12px;
-      font-size: 20px;
-      text-align: center;
-      letter-spacing: 3px;
-      font-weight: bold;
-      border: 1px solid rgba(0,0,0,0.1);
-    }
-
-    .info {
-      text-align: center;
-      margin-top: 6px;
-      font-size: 14px;
-    }
-
-    .loading {
-      text-align: center;
-      font-size: 13px;
-      color: gray;
-      margin-top: 8px;
-    }
-
-    video, img {
-      width: 100%;
-      border-radius: 12px;
-      margin-top: 10px;
-    }
-
-    button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 12px;
-      border-radius: 12px;
-      border: none;
-      font-weight: bold;
-    }
-
-    .btn-foto { background: #3b82f6; color: white; }
-    .btn-masuk { background: #10b981; color: white; }
-    .btn-pulang { background: #ef4444; color: white; }
-
-    #successScreen {
-      display:none;
-      position:fixed;
-      top:0;
-      left:0;
-      width:100%;
-      height:100%;
-      background:#f1f5f9;
-      justify-content:center;
-      align-items:center;
-      flex-direction:column;
-      z-index:999;
-    }
+    body { font-family:'Segoe UI'; background:#f1f5f9; margin:0; }
+    .header { text-align:center; padding:15px; background:#3b82f6; color:white; font-weight:bold; border-radius:0 0 20px 20px; }
+    .container { max-width:420px; margin:auto; padding:15px; }
+    .card { background:white; padding:20px; border-radius:16px; margin-top:15px; box-shadow:0 4px 12px rgba(0,0,0,0.08);}
+    .jam { text-align:center; font-weight:bold; color:#3b82f6; margin-bottom:10px; }
+    .input-login { width:100%; padding:12px; border-radius:12px; text-align:center; font-size:20px; }
+    .info { text-align:center; font-size:14px; margin-top:5px; }
+    button { width:100%; padding:14px; margin-top:10px; border-radius:12px; border:none; font-weight:bold; }
+    .btn-foto{background:#3b82f6;color:white;}
+    .btn-masuk{background:#10b981;color:white;}
+    .btn-pulang{background:#ef4444;color:white;}
+    video,img{width:100%; border-radius:12px; margin-top:10px;}
+    #successScreen{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#f1f5f9;justify-content:center;align-items:center;}
   </style>
 
 </head>
@@ -114,39 +29,35 @@
 
 <div class="container">
 
-  <div class="card">
-    <div class="jam" id="jamWIB">Loading...</div>
+<div class="card">
+  <div class="jam" id="jamWIB">Loading...</div>
 
-```
-<input type="text" id="nik" class="input-login" placeholder="Masukkan NIK">
+  <input type="text" id="nik" class="input-login" placeholder="Masukkan NIK">
 
-<div class="info" id="companyUser"></div>
-<div class="info" id="nikFull"></div>
-<div class="info" id="namaUser"></div>
-<div class="info" id="lokasiUser"></div>
-<div class="info" id="statusUser"></div>
-<div class="loading" id="loadingText"></div>
-```
+  <div class="info" id="companyUser"></div>
+  <div class="info" id="nikFull"></div>
+  <div class="info" id="namaUser"></div>
+  <div class="info" id="lokasiUser">📍 Mengambil lokasi...</div>
+  <div class="info" id="statusUser"></div>
+  <div class="info" id="loadingText"></div>
+</div>
 
-  </div>
+<div class="card">
+  <video id="video" autoplay playsinline></video>
+  <img id="preview" style="display:none;">
+  <button class="btn-foto" onclick="toggleFoto()">📸 Ambil Foto</button>
+</div>
 
-  <div class="card">
-    <video id="video" autoplay playsinline></video>
-    <img id="preview" style="display:none;">
-    <button class="btn-foto" onclick="toggleFoto()">📸 Ambil Foto</button>
-  </div>
-
-  <div class="card">
-    <button class="btn-masuk" onclick="kirim('Masuk')">✅ Masuk</button>
-    <button class="btn-pulang" onclick="kirim('Pulang')">🏠 Pulang</button>
-  </div>
+<div class="card">
+  <button class="btn-masuk" onclick="kirim('Masuk')">✅ Masuk</button>
+  <button class="btn-pulang" onclick="kirim('Pulang')">🏠 Pulang</button>
+</div>
 
 </div>
 
 <div id="successScreen">
   <div style="background:white;padding:30px;border-radius:20px;text-align:center;">
     <h2 style="color:#10b981;">✔ Absensi Berhasil</h2>
-    <p>Data berhasil disimpan</p>
   </div>
 </div>
 
@@ -161,218 +72,154 @@ let sudahFoto = false;
 
 let currentLat = 0;
 let currentLng = 0;
-let currentAlamat = "";
+let currentAlamat = "-";
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec";
 
 // ================= JAM =================
-function updateJam() {
+function updateJam(){
   const now = new Date();
-  const waktu = now.toLocaleString("id-ID", {
-    timeZone: "Asia/Jakarta",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit"
-  });
+  const waktu = now.toLocaleTimeString("id-ID",{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   document.getElementById("jamWIB").innerText = waktu + " WIB";
 }
-setInterval(updateJam, 1000);
-updateJam();
+setInterval(updateJam,1000); updateJam();
 
 // ================= INPUT =================
 const nikInput = document.getElementById("nik");
 
-nikInput.addEventListener("keypress", e => {
-  if (!/[0-9]/.test(e.key)) e.preventDefault();
-});
-
-nikInput.addEventListener("input", () => {
+nikInput.addEventListener("input", ()=>{
   let nik = nikInput.value;
-
-  if (nik.length >= 4) {
-    document.getElementById("loadingText").innerText = "Mencari user...";
+  if(nik.length>=4){
+    document.getElementById("loadingText").innerText="Mencari user...";
     cekUser(nik.slice(-4));
-  } else {
-    resetUI();
-  }
+  } else resetUI();
 });
 
-// ================= RESET =================
-function resetUI() {
-  userData = null;
-  document.getElementById("companyUser").innerText = "";
-  document.getElementById("nikFull").innerText = "";
-  document.getElementById("namaUser").innerText = "";
-  document.getElementById("statusUser").innerText = "";
-  document.getElementById("loadingText").innerText = "";
-}
-
-// ================= CEK USER =================
-function cekUser(nik) {
-  fetch(WEB_APP_URL + "?action=getUser&nik=" + nik)
-  .then(res => res.json())
-  .then(res => {
-
-    document.getElementById("loadingText").innerText = "";
-
-    if (res.status === "success") {
-      userData = res;
-
-      document.getElementById("companyUser").innerText = res.company || "";
-      document.getElementById("nikFull").innerText = res.nik;
-      document.getElementById("namaUser").innerText = res.nama;
-
+// ================= USER =================
+function cekUser(nik){
+  fetch(WEB_APP_URL+"?action=getUser&nik="+nik)
+  .then(res=>res.json())
+  .then(res=>{
+    document.getElementById("loadingText").innerText="";
+    if(res.status==="success"){
+      userData=res;
+      document.getElementById("companyUser").innerText=res.company||"";
+      document.getElementById("nikFull").innerText=res.nik;
+      document.getElementById("namaUser").innerText=res.nama;
       cekStatus(res.nik);
-
     } else {
       resetUI();
-      document.getElementById("namaUser").innerText = "User tidak ditemukan";
-      vibrate();
+      document.getElementById("namaUser").innerText="User tidak ditemukan";
     }
-
-  })
-  .catch(() => {
-    document.getElementById("loadingText").innerText = "Server error";
   });
 }
 
-// ================= STATUS =================
-function cekStatus(nik) {
-  fetch(WEB_APP_URL + "?action=cekStatus&nik=" + nik)
-  .then(res => res.json())
-  .then(res => {
-
-    let txt = "";
-
-    if (res.masuk) txt += "✔ Masuk ";
-    if (res.pulang) txt += "✔ Pulang";
-
-    if (!txt) txt = "Belum absen hari ini";
-
-    document.getElementById("statusUser").innerText = txt;
+function cekStatus(nik){
+  fetch(WEB_APP_URL+"?action=cekStatus&nik="+nik)
+  .then(res=>res.json())
+  .then(res=>{
+    let txt="";
+    if(res.masuk) txt+="✔ Masuk ";
+    if(res.pulang) txt+="✔ Pulang";
+    if(!txt) txt="Belum absen hari ini";
+    document.getElementById("statusUser").innerText=txt;
   });
+}
+
+function resetUI(){
+  userData=null;
+  document.getElementById("companyUser").innerText="";
+  document.getElementById("nikFull").innerText="";
+  document.getElementById("namaUser").innerText="";
+  document.getElementById("statusUser").innerText="";
 }
 
 // ================= GPS =================
-function ambilGPS() {
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      currentLat = pos.coords.latitude;
-      currentLng = pos.coords.longitude;
+function ambilGPS(){
+  navigator.geolocation.getCurrentPosition(pos=>{
+    currentLat=pos.coords.latitude;
+    currentLng=pos.coords.longitude;
 
-      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLat}&lon=${currentLng}`)
-      .then(res => res.json())
-      .then(data => {
-        currentAlamat = data.display_name;
-        document.getElementById("lokasiUser").innerText = "📍 " + currentAlamat;
-      });
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLat}&lon=${currentLng}`)
+    .then(res=>res.json())
+    .then(data=>{
+      currentAlamat=data.display_name||"-";
+      document.getElementById("lokasiUser").innerText="📍 "+currentAlamat;
+    })
+    .catch(()=>{
+      currentAlamat="-";
+      document.getElementById("lokasiUser").innerText="📍 Lokasi terdeteksi";
+    });
 
-    },
-    err => {
-      document.getElementById("lokasiUser").innerText = "GPS tidak aktif";
-    }
-  );
+  },()=>{
+    document.getElementById("lokasiUser").innerText="GPS tidak aktif";
+  });
 }
-
 ambilGPS();
 
 // ================= CAMERA =================
-navigator.mediaDevices.getUserMedia({ video: true })
-.then(stream => {
-  document.getElementById("video").srcObject = stream;
-})
-.catch(() => {
-  alert("Camera tidak diizinkan");
-});
+navigator.mediaDevices.getUserMedia({video:true})
+.then(stream=>{document.getElementById("video").srcObject=stream;});
 
 // ================= FOTO =================
-function toggleFoto() {
-  let video = document.getElementById("video");
-  let preview = document.getElementById("preview");
+function toggleFoto(){
+  let v=document.getElementById("video");
+  let p=document.getElementById("preview");
 
-  if (!sudahFoto) {
+  if(!sudahFoto){
+    let c=document.createElement("canvas");
+    c.width=v.videoWidth; c.height=v.videoHeight;
+    c.getContext("2d").drawImage(v,0,0);
+    fotoBase64=c.toDataURL("image/jpeg");
 
-    let canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    canvas.getContext("2d").drawImage(video, 0, 0);
-    fotoBase64 = canvas.toDataURL("image/jpeg");
-
-    preview.src = fotoBase64;
-    preview.style.display = "block";
-    video.style.display = "none";
-
-    sudahFoto = true;
-
-  } else {
-
-    preview.style.display = "none";
-    video.style.display = "block";
-    fotoBase64 = "";
-
-    sudahFoto = false;
+    p.src=fotoBase64;
+    p.style.display="block";
+    v.style.display="none";
+    sudahFoto=true;
+  }else{
+    p.style.display="none";
+    v.style.display="block";
+    fotoBase64="";
+    sudahFoto=false;
   }
 }
 
 // ================= KIRIM =================
-function kirim(status) {
+function kirim(status){
 
-  if (!userData) {
-    alert("User belum terdeteksi");
-    return;
-  }
+  if(!userData){ alert("User belum terdeteksi"); return;}
+  if(!fotoBase64){ alert("Ambil foto dulu"); return;}
 
-  if (!fotoBase64) {
-    alert("Ambil foto dulu");
-    return;
-  }
+  document.getElementById("loadingText").innerText="Mengirim data...";
 
-  document.getElementById("loadingText").innerText = "Mengirim data...";
-
-  fetch(WEB_APP_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      nik: userData.nik,
-      status: status,
-      lat: currentLat,
-      lng: currentLng,
-      foto: fotoBase64
+  fetch(WEB_APP_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      nik:userData.nik,
+      status:status,
+      lat:currentLat,
+      lng:currentLng,
+      alamat:currentAlamat, // 🔥 FIX
+      foto:fotoBase64
     })
   })
-  .then(res => res.json())
-  .then(res => {
+  .then(res=>res.json())
+  .then(res=>{
+    document.getElementById("loadingText").innerText="";
 
-    document.getElementById("loadingText").innerText = "";
-
-    if (res.status === "success") {
-
-      document.getElementById("successScreen").style.display = "flex";
+    if(res.status==="success"){
+      document.getElementById("successScreen").style.display="flex";
       document.getElementById("successSound").play();
+      setTimeout(()=>location.reload(),3000);
 
-      setTimeout(() => location.reload(), 3000);
-
-    } else if (res.status === "out_of_area") {
-
+    } else if(res.status==="out_of_area"){
       document.getElementById("errorSound").play();
-      alert("❌ Di luar area (" + res.jarak + " meter)");
-      vibrate();
-
+      alert("❌ Di luar area ("+res.jarak+" meter)");
     } else {
-
       document.getElementById("errorSound").play();
       alert(res.message);
     }
-
-  })
-  .catch(() => {
-    document.getElementById("loadingText").innerText = "Gagal kirim data";
   });
-}
-
-// ================= VIBRATE =================
-function vibrate() {
-  if (navigator.vibrate) navigator.vibrate(200);
 }
 
 </script>
