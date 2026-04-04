@@ -10,7 +10,17 @@
     .container { max-width:420px; margin:auto; padding:15px; }
     .card { background:white; padding:20px; border-radius:16px; margin-top:15px; box-shadow:0 4px 12px rgba(0,0,0,0.08);}
     .jam { text-align:center; font-weight:bold; color:#3b82f6; margin-bottom:10px; }
-    .input-login { width:100%; padding:12px; border-radius:12px; text-align:center; font-size:20px; }
+    
+    .input-login {
+      width:100%;
+      padding:14px;
+      border-radius:12px;
+      text-align:center;
+      font-size:22px;
+      letter-spacing:3px;
+      font-weight:bold;
+    }
+
     .info { text-align:center; font-size:14px; margin-top:5px; }
     button { width:100%; padding:14px; margin-top:10px; border-radius:12px; border:none; font-weight:bold; }
     .btn-foto{background:#3b82f6;color:white;}
@@ -30,7 +40,7 @@
 <div class="card">
   <div class="jam" id="jamWIB">Loading...</div>
 
-  <input type="text" id="nik" class="input-login" placeholder="Masukkan NIK">
+  <input type="text" id="nik" class="input-login" placeholder="4 DIGIT TERAKHIR NIK" maxlength="10">
 
   <div class="info" id="companyUser"></div>
   <div class="info" id="nikFull"></div>
@@ -59,13 +69,19 @@
   </div>
 </div>
 
-
-
-<audio id="successSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
-<audio id="errorSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
-
+<!-- 🔊 fallback sound -->
+<audio id="successSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
+<audio id="errorSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
 
 <script>
+
+// 🔊 SUARA WANITA (TEXT TO SPEECH)
+function playVoiceSuccess(){
+  const msg = new SpeechSynthesisUtterance("Absensi berhasil");
+  msg.lang = "id-ID";
+  msg.rate = 1;
+  speechSynthesis.speak(msg);
+}
 
 // ================= GLOBAL =================
 let userData = null;
@@ -74,12 +90,9 @@ let sudahFoto = false;
 
 let currentLat = 0;
 let currentLng = 0;
-
-// 🔥 PISAH TEXT & LINK
 let currentAlamatText = "";
 let currentAlamatLink = "";
 
-// ================= URL =================
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec";
 
 // ================= JAM =================
@@ -90,11 +103,13 @@ function updateJam(){
 }
 setInterval(updateJam,1000); updateJam();
 
-// ================= INPUT =================
+// ================= INPUT NIK =================
 const nikInput = document.getElementById("nik");
 
 nikInput.addEventListener("input", ()=>{
-  let nik = nikInput.value;
+  let nik = nikInput.value.replace(/\D/g,''); // hanya angka
+  nikInput.value = nik;
+
   if(nik.length>=4){
     document.getElementById("loadingText").innerText="Mencari user...";
     cekUser(nik.slice(-4));
@@ -110,7 +125,7 @@ function cekUser(nik){
     if(res.status==="success"){
       userData=res;
       document.getElementById("companyUser").innerText=res.company||"";
-      document.getElementById("nikFull").innerText=res.nik;
+      document.getElementById("nikFull").innerText="NIK: "+res.nik;
       document.getElementById("namaUser").innerText=res.nama;
       cekStatus(res.nik);
     } else {
@@ -140,59 +155,16 @@ function resetUI(){
   document.getElementById("statusUser").innerText="";
 }
 
-// ================= GPS FINAL (TEXT + LINK) =================
+// ================= GPS =================
 function ambilGPS(){
   navigator.geolocation.getCurrentPosition(pos=>{
     currentLat = pos.coords.latitude;
     currentLng = pos.coords.longitude;
 
-    // 🔥 LINK GOOGLE MAPS (PASTI VALID)
     currentAlamatLink = "https://www.google.com/maps?q=" + currentLat + "," + currentLng;
-
-    // default text
     currentAlamatText = "Lokasi terdeteksi";
+
     document.getElementById("lokasiUser").innerText = "📍 " + currentAlamatText;
-
-    // 🔥 TEXT ALAMAT (Photon)
-    fetch(`https://photon.komoot.io/reverse?lat=${currentLat}&lon=${currentLng}`)
-    .then(res=>res.json())
-    .then(data=>{
-      if(data && data.features && data.features.length > 0){
-        let p = data.features[0].properties;
-
-      let parts = [];
-
-// 🔥 PRIORITAS DETAIL
-if(p.street) parts.push(p.street);
-
-        // 🔥 TAMBAH vilage
-if(p.village) parts.push(p.village);
-else if(p.suburb) parts.push("Kec. " + p.suburb);
-
-
-// 🔥 TAMBAH KECAMATAN
-if(p.district) parts.push("Kec. " + p.district);
-else if(p.suburb) parts.push("Kec. " + p.suburb);
-
-// kota
-if(p.city) parts.push(p.city);
-else if(p.county) parts.push(p.county);
-
-// provinsi
-if(p.state) parts.push(p.state);
-
-        let hasil = parts.join(", ");
-
-        if(hasil && hasil.length > 5){
-          currentAlamatText = hasil;
-        }
-      }
-
-      document.getElementById("lokasiUser").innerText = "📍 " + currentAlamatText;
-    })
-    .catch(()=>{
-      // tetap pakai text default
-    });
 
   },()=>{
     document.getElementById("lokasiUser").innerText="GPS tidak aktif";
@@ -232,14 +204,7 @@ function kirim(status){
 
   if(!userData){ alert("User belum terdeteksi"); return;}
   if(!fotoBase64){ alert("Ambil foto dulu"); return;}
-
-  if(!currentAlamatLink){
-    alert("Tunggu lokasi selesai...");
-    return;
-  }
-
-  console.log("ALAMAT TEXT:", currentAlamatText);
-  console.log("ALAMAT LINK:", currentAlamatLink);
+  if(!currentAlamatLink){ alert("Tunggu lokasi..."); return;}
 
   document.getElementById("loadingText").innerText="Mengirim data...";
 
@@ -250,7 +215,7 @@ function kirim(status){
       status:status,
       lat:currentLat,
       lng:currentLng,
-      alamat:currentAlamatLink, // 🔥 KIRIM LINK
+      alamat:currentAlamatLink,
       foto:fotoBase64
     })
   })
@@ -260,7 +225,10 @@ function kirim(status){
 
     if(res.status==="success"){
       document.getElementById("successScreen").style.display="flex";
+
+      playVoiceSuccess(); // 🔊 suara wanita
       document.getElementById("successSound").play();
+
       setTimeout(()=>location.reload(),3000);
     } else {
       document.getElementById("errorSound").play();
@@ -268,7 +236,6 @@ function kirim(status){
     }
   });
 }
-
 
 </script>
 
