@@ -10,15 +10,33 @@
     .container { max-width:420px; margin:auto; padding:15px; }
     .card { background:white; padding:20px; border-radius:16px; margin-top:15px; box-shadow:0 4px 12px rgba(0,0,0,0.08);}
     .jam { text-align:center; font-weight:bold; color:#3b82f6; margin-bottom:10px; }
-    
+
+    /* 🔥 UI INPUT BARU (GLASS EFFECT) */
     .input-login {
       width:100%;
-      padding:14px;
-      border-radius:12px;
+      padding:12px;
+      border-radius:14px;
       text-align:center;
-      font-size:22px;
-      letter-spacing:3px;
-      font-weight:bold;
+      font-size:16px;
+      letter-spacing:2px;
+      font-weight:500;
+      border:2px solid rgba(0,0,0,0.2);
+      background:rgba(255,255,255,0.6);
+      backdrop-filter: blur(6px);
+      outline:none;
+      transition:0.2s;
+      box-shadow:0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .input-login::placeholder{
+      color:rgba(0,0,0,0.4);
+      font-size:14px;
+      letter-spacing:1px;
+    }
+
+    .input-login:focus{
+      border-color:#3b82f6;
+      background:rgba(255,255,255,0.9);
     }
 
     .info { text-align:center; font-size:14px; margin-top:5px; }
@@ -40,7 +58,8 @@
 <div class="card">
   <div class="jam" id="jamWIB">Loading...</div>
 
-  <input type="text" id="nik" class="input-login" placeholder="4 DIGIT TERAKHIR NIK" maxlength="10">
+  <!-- 🔥 UPDATED INPUT -->
+  <input type="text" id="nik" class="input-login" placeholder="Masukkan 4 digit terakhir NIK" maxlength="10">
 
   <div class="info" id="companyUser"></div>
   <div class="info" id="nikFull"></div>
@@ -69,17 +88,15 @@
   </div>
 </div>
 
-<!-- 🔊 fallback sound -->
 <audio id="successSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
 <audio id="errorSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
 
 <script>
 
-// 🔊 SUARA WANITA (TEXT TO SPEECH)
+// 🔊 SUARA WANITA
 function playVoiceSuccess(){
   const msg = new SpeechSynthesisUtterance("Absensi berhasil");
   msg.lang = "id-ID";
-  msg.rate = 1;
   speechSynthesis.speak(msg);
 }
 
@@ -103,11 +120,11 @@ function updateJam(){
 }
 setInterval(updateJam,1000); updateJam();
 
-// ================= INPUT NIK =================
+// ================= INPUT =================
 const nikInput = document.getElementById("nik");
 
 nikInput.addEventListener("input", ()=>{
-  let nik = nikInput.value.replace(/\D/g,''); // hanya angka
+  let nik = nikInput.value.replace(/\D/g,'');
   nikInput.value = nik;
 
   if(nik.length>=4){
@@ -125,7 +142,7 @@ function cekUser(nik){
     if(res.status==="success"){
       userData=res;
       document.getElementById("companyUser").innerText=res.company||"";
-      document.getElementById("nikFull").innerText="NIK: "+res.nik;
+      document.getElementById("nikFull").innerText=res.nik;
       document.getElementById("namaUser").innerText=res.nama;
       cekStatus(res.nik);
     } else {
@@ -160,14 +177,9 @@ function ambilGPS(){
   navigator.geolocation.getCurrentPosition(pos=>{
     currentLat = pos.coords.latitude;
     currentLng = pos.coords.longitude;
-
     currentAlamatLink = "https://www.google.com/maps?q=" + currentLat + "," + currentLng;
     currentAlamatText = "Lokasi terdeteksi";
-
     document.getElementById("lokasiUser").innerText = "📍 " + currentAlamatText;
-
-  },()=>{
-    document.getElementById("lokasiUser").innerText="GPS tidak aktif";
   });
 }
 ambilGPS();
@@ -201,7 +213,6 @@ function toggleFoto(){
 
 // ================= KIRIM =================
 function kirim(status){
-
   if(!userData){ alert("User belum terdeteksi"); return;}
   if(!fotoBase64){ alert("Ambil foto dulu"); return;}
   if(!currentAlamatLink){ alert("Tunggu lokasi..."); return;}
@@ -225,10 +236,8 @@ function kirim(status){
 
     if(res.status==="success"){
       document.getElementById("successScreen").style.display="flex";
-
-      playVoiceSuccess(); // 🔊 suara wanita
+      playVoiceSuccess();
       document.getElementById("successSound").play();
-
       setTimeout(()=>location.reload(),3000);
     } else {
       document.getElementById("errorSound").play();
