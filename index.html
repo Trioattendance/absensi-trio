@@ -153,6 +153,7 @@ function ambilGPS(){
         let parts = [];
 
         if(p.street) parts.push(p.street);
+        if(p.city) parts.push(p.village);
         if(p.city) parts.push(p.city);
         if(p.state) parts.push(p.state);
         if(p.country) parts.push(p.country);
