@@ -71,8 +71,9 @@ let sudahFoto = false;
 
 let currentLat = 0;
 let currentLng = 0;
-let currentAlamat = "-";
+let currentAlamat = "";
 
+// ================= URL =================
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec";
 
 // ================= JAM =================
@@ -133,21 +134,40 @@ function resetUI(){
   document.getElementById("statusUser").innerText="";
 }
 
-// ================= GPS (FIX FINAL) =================
+// ================= GPS FINAL =================
 function ambilGPS(){
   navigator.geolocation.getCurrentPosition(pos=>{
-    currentLat=pos.coords.latitude;
-    currentLng=pos.coords.longitude;
+    currentLat = pos.coords.latitude;
+    currentLng = pos.coords.longitude;
 
-    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLat}&lon=${currentLng}`)
+    // default aman
+    currentAlamat = "Lokasi: " + currentLat.toFixed(5)+","+currentLng.toFixed(5);
+    document.getElementById("lokasiUser").innerText = "📍 " + currentAlamat;
+
+    fetch(`https://photon.komoot.io/reverse?lat=${currentLat}&lon=${currentLng}`)
     .then(res=>res.json())
     .then(data=>{
-      currentAlamat=data.display_name||"-";
-      document.getElementById("lokasiUser").innerText="📍 "+currentAlamat;
+      if(data && data.features && data.features.length > 0){
+        let p = data.features[0].properties;
+
+        let parts = [];
+
+        if(p.street) parts.push(p.street);
+        if(p.city) parts.push(p.city);
+        if(p.state) parts.push(p.state);
+        if(p.country) parts.push(p.country);
+
+        let hasil = parts.join(", ");
+
+        if(hasil && hasil.length > 5){
+          currentAlamat = hasil;
+        }
+      }
+
+      document.getElementById("lokasiUser").innerText = "📍 " + currentAlamat;
     })
     .catch(()=>{
-      currentAlamat="-";
-      document.getElementById("lokasiUser").innerText="📍 Lokasi terdeteksi";
+      // fallback tetap koordinat
     });
 
   },()=>{
@@ -190,6 +210,13 @@ function kirim(status){
   if(!userData){ alert("User belum terdeteksi"); return;}
   if(!fotoBase64){ alert("Ambil foto dulu"); return;}
 
+  if(!currentAlamat){
+    alert("Tunggu lokasi selesai...");
+    return;
+  }
+
+  console.log("ALAMAT DIKIRIM:", currentAlamat);
+
   document.getElementById("loadingText").innerText="Mengirim data...";
 
   fetch(WEB_APP_URL,{
@@ -199,7 +226,7 @@ function kirim(status){
       status:status,
       lat:currentLat,
       lng:currentLng,
-      alamat:currentAlamat, // 🔥 dari frontend
+      alamat:currentAlamat,
       foto:fotoBase64
     })
   })
@@ -211,7 +238,6 @@ function kirim(status){
       document.getElementById("successScreen").style.display="flex";
       document.getElementById("successSound").play();
       setTimeout(()=>location.reload(),3000);
-
     } else {
       document.getElementById("errorSound").play();
       alert(res.message);
