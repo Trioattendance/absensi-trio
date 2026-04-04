@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html>
 <head>
   <title>Absensi Karyawan</title>
@@ -20,7 +19,6 @@
     video,img{width:100%; border-radius:12px; margin-top:10px;}
     #successScreen{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#f1f5f9;justify-content:center;align-items:center;}
   </style>
-
 </head>
 
 <body>
@@ -61,7 +59,8 @@
   </div>
 </div>
 
-<audio id="successSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio> <audio id="errorSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+<audio id="successSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+<audio id="errorSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
 
 <script>
 
@@ -134,21 +133,40 @@ function resetUI(){
   document.getElementById("statusUser").innerText="";
 }
 
-// ================= GPS =================
+// ================= GPS (FIX FINAL) =================
 function ambilGPS(){
   navigator.geolocation.getCurrentPosition(pos=>{
-    currentLat=pos.coords.latitude;
-    currentLng=pos.coords.longitude;
+    currentLat = pos.coords.latitude;
+    currentLng = pos.coords.longitude;
 
-    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLat}&lon=${currentLng}`)
+    fetch(`https://photon.komoot.io/reverse?lat=${currentLat}&lon=${currentLng}`)
     .then(res=>res.json())
     .then(data=>{
-      currentAlamat=data.display_name||"-";
-      document.getElementById("lokasiUser").innerText="📍 "+currentAlamat;
+      if(data && data.features && data.features.length > 0){
+        let p = data.features[0].properties;
+
+        let alamatParts = [];
+
+        if(p.street) alamatParts.push(p.street);
+        if(p.city) alamatParts.push(p.city);
+        if(p.state) alamatParts.push(p.state);
+        if(p.country) alamatParts.push(p.country);
+
+        currentAlamat = alamatParts.join(", ");
+
+        if(!currentAlamat || currentAlamat.trim()===""){
+          currentAlamat = "Lokasi: " + currentLat.toFixed(5)+","+currentLng.toFixed(5);
+        }
+
+      } else {
+        currentAlamat = "Lokasi: " + currentLat.toFixed(5)+","+currentLng.toFixed(5);
+      }
+
+      document.getElementById("lokasiUser").innerText = "📍 " + currentAlamat;
     })
     .catch(()=>{
-      currentAlamat="-";
-      document.getElementById("lokasiUser").innerText="📍 Lokasi terdeteksi";
+      currentAlamat = "Lokasi: " + currentLat.toFixed(5)+","+currentLng.toFixed(5);
+      document.getElementById("lokasiUser").innerText = "📍 " + currentAlamat;
     });
 
   },()=>{
@@ -199,7 +217,7 @@ function kirim(status){
       status:status,
       lat:currentLat,
       lng:currentLng,
-      alamat:currentAlamat, // 🔥 FIX
+      alamat:currentAlamat, // 🔥 dari frontend
       foto:fotoBase64
     })
   })
@@ -212,9 +230,6 @@ function kirim(status){
       document.getElementById("successSound").play();
       setTimeout(()=>location.reload(),3000);
 
-    } else if(res.status==="out_of_area"){
-      document.getElementById("errorSound").play();
-      alert("❌ Di luar area ("+res.jarak+" meter)");
     } else {
       document.getElementById("errorSound").play();
       alert(res.message);
