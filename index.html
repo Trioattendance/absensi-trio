@@ -100,18 +100,33 @@
   </div>
 </div>
 
-<audio id="successSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
-<audio id="errorSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
-
 <script>
-
+  
+function getNamaPendek(nama){
+  if(!nama) return "";
+  let parts = nama.trim().split(" ");
+  return parts.slice(0,2).join(" ");
+}
+  
 // 🔊 SUARA WANITA
-function playVoiceSuccess(){
-  const msg = new SpeechSynthesisUtterance("Absensi berhasil");
+function playVoiceSuccess(nama){
+  let namaPendek = getNamaPendek(nama);
+  const msg = new SpeechSynthesisUtterance(
+    "Absensi berhasil, " + namaPendek
+  );
   msg.lang = "id-ID";
   speechSynthesis.speak(msg);
 }
 
+function playVoiceError(nama){
+  let namaPendek = getNamaPendek(nama);
+  const msg = new SpeechSynthesisUtterance(
+    namaPendek + ", Anda berada di luar area"
+  );
+  msg.lang = "id-ID";
+  speechSynthesis.speak(msg);
+}
+  
 // ================= GLOBAL =================
 let userData = null;
 let fotoBase64 = "";
@@ -310,7 +325,8 @@ function kirim(status){
 
     if(res.status==="success"){
       document.getElementById("successScreen").style.display="flex";
-      playVoiceSuccess();
+    //  playVoiceSuccess();
+      playVoiceSuccess(userData.nama);
       document.getElementById("successSound").play();
       setTimeout(()=>location.reload(),3000);
     } else {
