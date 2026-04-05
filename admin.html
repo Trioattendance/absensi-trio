@@ -1,119 +1,137 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Dashboard Absensi</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body {
-      font-family: Arial;
-      padding: 10px;
-      background: #f5f5f5;
-    }
-    h2 {
-      text-align: center;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-    }
-    th, td {
-      padding: 8px;
-      border: 1px solid #ddd;
-      font-size: 12px;
-    }
-    th {
-      background: #007bff;
-      color: white;
-    }
-    button {
-      padding: 8px;
-      margin: 5px 0;
-    }
-  </style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin Panel</title>
+
+<!-- XLSX LIB -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<style>
+body{font-family:'Segoe UI';background:#f1f5f9;margin:0}
+.container{max-width:650px;margin:auto;padding:15px}
+.card{background:white;padding:15px;border-radius:15px;margin-top:15px}
+input,select,button{width:100%;padding:10px;margin-top:8px;border-radius:10px;border:1px solid #ccc}
+button{background:#3b82f6;color:white;font-weight:bold;border:none;cursor:pointer}
+h3{text-align:center}
+.hidden{display:none}
+.table{max-height:300px;overflow:auto;margin-top:10px}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #ddd;padding:6px;font-size:12px}
+.btn-export{background:#10b981}
+.header{background:#3b82f6;color:white;padding:10px;border-radius:0 0 15px 15px;text-align:center}
+</style>
 </head>
+
 <body>
 
-<h2>Dashboard Absensi</h2>
+<div class="header" id="headerText">🔐 Admin Panel</div>
 
-Filter Tanggal:
-<input type="date" id="tgl">
-<button onclick="loadData()">Load</button>
-<button onclick="exportCSV()">Export CSV</button>
+<div class="container">
 
-<br><br>
+<!-- LOGIN -->
+<div class="card" id="loginBox">
+  <h3>Login Admin</h3>
+  <input type="password" id="pin" placeholder="Masukkan PIN">
+  <button onclick="login()">Login</button>
+</div>
 
-<table id="tbl">
-  <thead>
-    <tr>
-      <th>Tanggal</th>
-      <th>NIK</th>
-      <th>Nama</th>
-      <th>Status</th>
-      <th>Jarak</th>
-      <th>Keterangan</th>
-      <th>Foto</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+<!-- PANEL -->
+<div id="adminPanel" class="hidden">
+
+<div class="card">
+  <h3>📊 Filter Absensi</h3>
+
+  <input id="filterCompany" placeholder="Company">
+
+  <label>Dari Tanggal</label>
+  <input type="date" id="startDate">
+
+  <label>Sampai Tanggal</label>
+  <input type="date" id="endDate">
+
+  <button onclick="getAbsensi()">Tampilkan</button>
+  <button class="btn-export" onclick="exportExcel()">⬇ Export XLSX</button>
+
+  <div class="table" id="absensiTable"></div>
+</div>
+
+</div>
+
+</div>
 
 <script>
-let dataGlobal = [];
 
-function loadData() {
-  fetch("https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec")
-    .then(res => res.json())
-    .then(data => {
+const URL = "https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec";
 
-      dataGlobal = data;
+let absensiData = [];
+let adminData = {};
 
-      let tglFilter = document.getElementById("tgl").value;
-      let tbody = document.querySelector("#tbl tbody");
+// ================= LOGIN =================
+function login(){
+  fetch(URL+"?action=loginAdmin&pin="+pin.value)
+  .then(r=>r.json())
+  .then(res=>{
+    if(res.status=="success"){
+      adminData = res;
 
-      tbody.innerHTML = "";
+      loginBox.classList.add("hidden");
+      adminPanel.classList.remove("hidden");
 
-      data.forEach(d => {
-
-        let tgl = new Date(d.tanggal).toISOString().split('T')[0];
-
-        if (tglFilter && tgl !== tglFilter) return;
-
-        let row = `
-          <tr>
-            <td>${tgl}</td>
-            <td>${d.nik}</td>
-            <td>${d.nama}</td>
-            <td>${d.status}</td>
-            <td>${Math.round(d.jarak)} m</td>
-            <td>${d.ket}</td>
-            <td><a href="${d.foto}" target="_blank">Lihat</a></td>
-          </tr>
-        `;
-
-        tbody.innerHTML += row;
-      });
-
-    });
-}
-
-// EXPORT CSV
-function exportCSV() {
-  let csv = "Tanggal,NIK,Nama,Status,Jarak,Keterangan\n";
-
-  dataGlobal.forEach(d => {
-    let tgl = new Date(d.tanggal).toISOString().split('T')[0];
-    csv += `${tgl},${d.nik},${d.nama},${d.status},${d.jarak},${d.ket}\n`;
+      document.getElementById("headerText").innerText =
+        "👤 " + res.nama + " (" + res.role + ")";
+    }else{
+      alert("PIN salah");
+    }
   });
-
-  let blob = new Blob([csv], { type: 'text/csv' });
-  let url = URL.createObjectURL(blob);
-
-  let a = document.createElement("a");
-  a.href = url;
-  a.download = "absensi.csv";
-  a.click();
 }
+
+// ================= GET ABSENSI =================
+function getAbsensi(){
+
+  let company = filterCompany.value;
+  let start = startDate.value;
+  let end = endDate.value;
+
+  fetch(`${URL}?action=getAbsensi&company=${company}&start=${start}&end=${end}`)
+  .then(r=>r.json())
+  .then(res=>{
+    absensiData = res.data;
+
+    let html="<table><tr><th>NIK</th><th>Nama</th><th>Company</th><th>Masuk</th><th>Pulang</th><th>Type</th></tr>";
+
+    res.data.forEach(r=>{
+      html+=`<tr>
+        <td>${r.nik}</td>
+        <td>${r.nama}</td>
+        <td>${r.company}</td>
+        <td>${r.masuk}</td>
+        <td>${r.pulang}</td>
+        <td>${r.type}</td>
+      </tr>`;
+    });
+
+    html+="</table>";
+    absensiTable.innerHTML=html;
+  });
+}
+
+// ================= EXPORT XLSX =================
+function exportExcel(){
+
+  if(absensiData.length===0){
+    alert("Data kosong");
+    return;
+  }
+
+  const ws = XLSX.utils.json_to_sheet(absensiData);
+  const wb = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(wb, ws, "Absensi");
+
+  XLSX.writeFile(wb, "absensi.xlsx");
+}
+
 </script>
 
 </body>
