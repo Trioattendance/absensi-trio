@@ -107,15 +107,18 @@ function getNamaPendek(nama){
   let parts = nama.trim().split(" ");
   return parts.slice(0,2).join(" ");
 }
-  
-// 🔊 SUARA WANITA
-function playVoiceSuccess(nama){
-  let namaPendek = getNamaPendek(nama);
-  const msg = new SpeechSynthesisUtterance(
-    "Absensi berhasil, " + namaPendek
-  );
-  msg.lang = "id-ID";
-  speechSynthesis.speak(msg);
+
+function playVoice(text){
+  try{
+    speechSynthesis.cancel(); // reset dulu
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.lang = "id-ID";
+    msg.rate = 1;
+    msg.pitch = 1;
+    speechSynthesis.speak(msg);
+  }catch(e){
+    console.log("Voice error:", e);
+  }
 }
 
 function playVoiceError(nama){
@@ -325,8 +328,8 @@ function kirim(status){
 
     if(res.status==="success"){
       document.getElementById("successScreen").style.display="flex";
-    //  playVoiceSuccess();
-      playVoiceSuccess(userData.nama);
+   let namaPendek = getNamaPendek(userData?.nama || "");
+   playVoice("Absensi berhasil, " + namaPendek);
       document.getElementById("successSound").play();
       setTimeout(()=>location.reload(),3000);
     } else {
