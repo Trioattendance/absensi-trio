@@ -107,15 +107,7 @@
 
 // 🔊 SUARA WANITA
 function playVoiceSuccess(){
-  const options = [
-    "Absensi berhasil",
-    "Data berhasil disimpan",
-    "Terima kasih, absensi berhasil"
-  ];
-  const text = options[Math.floor(Math.random()*options.length)];
-
-  speechSynthesis.cancel();
-  const msg = new SpeechSynthesisUtterance(text);
+  const msg = new SpeechSynthesisUtterance("Absensi berhasil");
   msg.lang = "id-ID";
   speechSynthesis.speak(msg);
 }
