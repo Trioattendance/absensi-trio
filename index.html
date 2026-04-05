@@ -223,34 +223,55 @@ function resetUI(){
   document.getElementById("statusUser").innerText="";
 }
 
-// ================= GPS (BALIK KE LAMA) =================
+// ================= GPS =================
 function ambilGPS(){
   navigator.geolocation.getCurrentPosition(pos=>{
     currentLat = pos.coords.latitude;
     currentLng = pos.coords.longitude;
 
+    // link maps tetap
     currentAlamatLink = "https://www.google.com/maps?q=" + currentLat + "," + currentLng;
 
+    // default dulu
     currentAlamatText = "Mendeteksi lokasi...";
     document.getElementById("lokasiUser").innerText = "📍 " + currentAlamatText;
 
+    // 🔥 ambil alamat lagi (Photon)
     fetch(`https://photon.komoot.io/reverse?lat=${currentLat}&lon=${currentLng}`)
     .then(res=>res.json())
     .then(data=>{
-      if(data && data.features.length > 0){
+      if(data && data.features && data.features.length > 0){
         let p = data.features[0].properties;
+
         let parts = [];
 
         if(p.street) parts.push(p.street);
+
         if(p.village) parts.push(p.village);
+
+        if(p.district) parts.push("Kec. " + p.district);
+        else if(p.suburb) parts.push("Kec. " + p.suburb);
+
         if(p.city) parts.push(p.city);
+        else if(p.county) parts.push(p.county);
+
         if(p.state) parts.push(p.state);
 
-        currentAlamatText = parts.join(", ");
+        let hasil = parts.join(", ");
+
+        if(hasil && hasil.length > 5){
+          currentAlamatText = hasil;
+        } else {
+          currentAlamatText = "Lokasi ditemukan";
+        }
       } else {
         currentAlamatText = "Lokasi ditemukan";
       }
 
+      document.getElementById("lokasiUser").innerText = "📍 " + currentAlamatText;
+    })
+    .catch(()=>{
+      currentAlamatText = "Lokasi ditemukan";
       document.getElementById("lokasiUser").innerText = "📍 " + currentAlamatText;
     });
 
