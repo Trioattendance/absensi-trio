@@ -186,7 +186,7 @@ function cekUser(nik){
       document.getElementById("companyUser").innerText=res.company||"";
       document.getElementById("nikFull").innerText=res.nik;
       document.getElementById("namaUser").innerText=res.nama;
-      cekStatus(res.nik);
+      cekStatus(res.nik, res.company);  // ✅ FIX
     } else {
       resetUI();
       document.getElementById("namaUser").innerText=res.message || "User tidak ditemukan";
@@ -194,8 +194,8 @@ function cekUser(nik){
   });
 }
 
-function cekStatus(nik){
-  fetch(WEB_APP_URL+"?action=cekStatus&nik="+nik)
+function cekStatus(nik, company){
+  fetch(WEB_APP_URL+"?action=cekStatus&nik="+nik+"&company="+company)
   .then(res=>res.json())
   .then(res=>{
     let txt="";
