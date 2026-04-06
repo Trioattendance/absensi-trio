@@ -10,12 +10,14 @@
     .container { max-width:450px; margin:auto; padding:15px; }
     .card { background:white; padding:20px; border-radius:16px; margin-top:15px; box-shadow:0 4px 12px rgba(0,0,0,0.08);}
 
+    /* 🔥 UPDATE JAM HORIZONTAL */
     .jam {
       text-align:center;
       font-weight:bold;
       color:#3b82f6;
       margin-bottom:10px;
       font-size:15px;
+      letter-spacing:0.5px;
     }
 
     .input-login {
@@ -26,26 +28,35 @@
       border-radius:12px;
       text-align:center;
       font-size:15px;
+      letter-spacing:1.5px;
+      font-weight:500;
       border:2px solid rgba(0,0,0,0.2);
       background:rgba(255,255,255,0.5);
+      backdrop-filter: blur(6px);
+      outline:none;
+      transition:0.2s;
     }
 
-    select.input-login{
-      margin-bottom:8px;
+    .input-login::placeholder{
+      color:rgba(0,0,0,0.4);
+      font-size:13px;
     }
 
-    .btn-pulang:disabled {
-      background: #9ca3af !important;
-      cursor: not-allowed;
+    .input-login:focus{
+      border-color:#3b82f6;
+      background:rgba(255,255,255,0.85);
     }
-
+    
+.btn-pulang:disabled {
+  background: #9ca3af !important;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
     .info { text-align:center; font-size:14px; margin-top:5px; }
-
     button { width:100%; padding:14px; margin-top:10px; border-radius:12px; border:none; font-weight:bold; }
     .btn-foto{background:#3b82f6;color:white;}
     .btn-masuk{background:#10b981;color:white;}
     .btn-pulang{background:#ef4444;color:white;}
-
     video,img{width:100%; border-radius:12px; margin-top:10px;}
     #successScreen{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#f1f5f9;justify-content:center;align-items:center;}
   </style>
@@ -59,11 +70,6 @@
 
 <div class="card">
   <div class="jam" id="jamWIB">Loading...</div>
-
-  <!-- 🔥 COMPANY AUTO -->
-  <select id="company" class="input-login">
-    <option value="">Loading company...</option>
-  </select>
 
   <input type="text" id="nik" class="input-login" placeholder="Masukkan 4 digit terakhir NIK" maxlength="10">
 
@@ -83,7 +89,7 @@
 
 <div class="card">
  <button class="btn-masuk" onclick="kirim('Masuk')">✅ Absen Masuk</button>
- <button class="btn-pulang" id="btnPulang" onclick="kirim('Pulang')" disabled>🏠 Absen Pulang</button>
+<button class="btn-pulang" id="btnPulang" onclick="kirim('Pulang')" disabled>🏠 Absen Pulang</button>
 </div>
 
 </div>
@@ -99,38 +105,12 @@
 
 <script>
 
-// 🔊 SUARA
+// 🔊 SUARA WANITA
 function playVoiceSuccess(){
   const msg = new SpeechSynthesisUtterance("Absensi berhasil");
   msg.lang = "id-ID";
   speechSynthesis.speak(msg);
 }
-
-// ================= COMPANY =================
-function loadCompany(){
-  fetch(WEB_APP_URL+"?action=getCompany")
-  .then(res=>res.json())
-  .then(res=>{
-    let select = document.getElementById("company");
-    let html = '<option value="">Pilih Company</option>';
-
-    res.data.sort().forEach(c=>{
-      html += `<option value="${c}">${c}</option>`;
-    });
-
-    select.innerHTML = html;
-
-    let last = localStorage.getItem("company");
-    if(last) select.value = last;
-  });
-}
-
-document.getElementById("company").addEventListener("change", function(){
-  localStorage.setItem("company", this.value);
-});
-
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec";
-loadCompany();
 
 // ================= GLOBAL =================
 let userData = null;
@@ -142,13 +122,18 @@ let currentLng = 0;
 let currentAlamatText = "";
 let currentAlamatLink = "";
 
-// ================= JAM =================
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec";
+
+// ================= JAM UPDATE =================
 function updateJam(){
   const now = new Date();
+
   const hari = now.toLocaleDateString("id-ID", { weekday: 'long' });
   const tanggal = now.toLocaleDateString("id-ID", { day:'2-digit', month:'long', year:'numeric' });
   const waktu = now.toLocaleTimeString("id-ID",{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  document.getElementById("jamWIB").innerText = `${hari}, ${tanggal} | ${waktu} WIB`;
+
+  document.getElementById("jamWIB").innerText =
+    `${hari}, ${tanggal} | ${waktu} WIB`;
 }
 setInterval(updateJam,1000); updateJam();
 
@@ -159,56 +144,48 @@ nikInput.addEventListener("input", ()=>{
   let nik = nikInput.value.replace(/\D/g,'');
   nikInput.value = nik;
 
-  const company = document.getElementById("company").value;
-
-  if(!company){
-    document.getElementById("loadingText").innerText="Pilih company dulu";
-    return;
-  }
-
   if(nik.length>=4){
     document.getElementById("loadingText").innerText="Mencari user...";
-    cekUser(nik);
+    cekUser(nik.slice(-4));
   } else resetUI();
 });
 
 // ================= USER =================
 function cekUser(nik){
-  const company = document.getElementById("company").value;
-
-  fetch(WEB_APP_URL+"?action=getUser&nik="+nik+"&company="+company)
+  fetch(WEB_APP_URL+"?action=getUser&nik="+nik)
   .then(res=>res.json())
   .then(res=>{
     document.getElementById("loadingText").innerText="";
-
     if(res.status==="success"){
       userData=res;
       document.getElementById("companyUser").innerText=res.company||"";
       document.getElementById("nikFull").innerText=res.nik;
       document.getElementById("namaUser").innerText=res.nama;
-      cekStatus(res.nik, res.company);  // ✅ FIX
+      cekStatus(res.nik);
     } else {
       resetUI();
-      document.getElementById("namaUser").innerText=res.message || "User tidak ditemukan";
+      document.getElementById("namaUser").innerText="User tidak ditemukan";
     }
   });
 }
 
-function cekStatus(nik, company){
-  fetch(WEB_APP_URL+"?action=cekStatus&nik="+nik+"&company="+company)
+function cekStatus(nik){
+  fetch(WEB_APP_URL+"?action=cekStatus&nik="+nik)
   .then(res=>res.json())
   .then(res=>{
     let txt="";
+
     let btnPulang = document.getElementById("btnPulang");
 
     if(res.masuk){
       txt+="✔ Masuk ";
-      btnPulang.disabled = false;
+      btnPulang.disabled = false; // 🔥 AKTIFKAN
     } else {
-      btnPulang.disabled = true;
+      btnPulang.disabled = true; // 🔥 DISABLE
     }
 
     if(res.pulang) txt+="✔ Pulang";
+
     if(!txt) txt="Belum absen hari ini";
 
     document.getElementById("statusUser").innerText=txt;
@@ -320,7 +297,6 @@ function kirim(status){
     method:"POST",
     body:JSON.stringify({
       nik:userData.nik,
-      company: document.getElementById("company").value,
       status:status,
       lat:currentLat,
       lng:currentLng,
