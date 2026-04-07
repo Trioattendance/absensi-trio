@@ -257,11 +257,29 @@ function cekStatus(nik){
 }
 
 function resetUI(){
-  userData=null;
-  document.getElementById("companyUser").innerText="";
-  document.getElementById("nikFull").innerText="";
-  document.getElementById("namaUser").innerText="";
-  document.getElementById("statusUser").innerText="";
+  userData = null;
+
+  document.getElementById("companyUser").innerText = "";
+  document.getElementById("nikFull").innerText = "";
+  document.getElementById("namaUser").innerText = "";
+  document.getElementById("statusUser").innerText = "";
+
+  // 🔥 RESET FOTO
+  let video = document.getElementById("video");
+  let preview = document.getElementById("preview");
+
+  preview.style.display = "none";
+  video.style.display = "block";
+
+  fotoBase64 = "";
+  sudahFoto = false;
+
+  // 🔥 RESET FACE STATUS
+  faceDetected = false;
+  document.getElementById("faceStatus").innerText = "❌ Wajah tidak terdeteksi";
+  document.getElementById("faceStatus").style.background = "#ef4444";
+
+  // 🔥 STOP CAMERA
   stopCamera();
 }
 
