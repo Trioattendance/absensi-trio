@@ -59,8 +59,13 @@
     .btn-masuk{background:#10b981;color:white;}
     .btn-pulang{background:#ef4444;color:white;}
     video,img{width:100%; border-radius:12px; margin-top:10px;}
+
     #successScreen{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#f1f5f9;justify-content:center;align-items:center;}
   </style>
+
+  <!-- 🔥 FACE API -->
+
+  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
 
 </head>
 
@@ -84,7 +89,23 @@
 </div>
 
 <div class="card">
-  <video id="video" autoplay playsinline></video>
+
+  <div style="position:relative;">
+    <video id="video" autoplay playsinline></video>
+
+```
+<!-- 🔴🟢 INDIKATOR -->
+<div id="faceStatus"
+  style="position:absolute;top:10px;left:10px;
+  background:#ef4444;color:white;
+  padding:5px 10px;border-radius:8px;
+  font-size:12px;font-weight:bold;">
+  ❌ Wajah tidak terdeteksi
+</div>
+```
+
+  </div>
+
   <img id="preview" style="display:none;">
   <button class="btn-foto" onclick="toggleFoto()">📸 Ambil Foto</button>
 </div>
@@ -106,11 +127,42 @@
 
 <script>
 
-// 🔊 SUARA WANITA
-function playVoiceSuccess(){
-  const msg = new SpeechSynthesisUtterance("Absensi berhasil");
-  msg.lang = "id-ID";
-  speechSynthesis.speak(msg);
+// ================= FACE =================
+let faceDetected = false;
+let faceReady = false;
+
+async function loadFaceModel(){
+  const MODEL_URL = "https://cdn.jsdelivr.net/npm/face-api.js/weights";
+  await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+  faceReady = true;
+}
+loadFaceModel();
+
+async function detectFaceLoop(){
+  const video = document.getElementById("video");
+  const status = document.getElementById("faceStatus");
+
+  if(!faceReady || !video || video.readyState !== 4){
+    requestAnimationFrame(detectFaceLoop);
+    return;
+  }
+
+  const detection = await faceapi.detectSingleFace(
+    video,
+    new faceapi.TinyFaceDetectorOptions()
+  );
+
+  faceDetected = !!detection;
+
+  if(faceDetected){
+    status.innerText = "✔ Wajah terdeteksi";
+    status.style.background = "#10b981";
+  }else{
+    status.innerText = "❌ Wajah tidak terdeteksi";
+    status.style.background = "#ef4444";
+  }
+
+  requestAnimationFrame(detectFaceLoop);
 }
 
 // ================= GLOBAL =================
@@ -160,7 +212,12 @@ function startCamera(){
     navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
     .then(stream=>{
       cameraStream = stream;
-      document.getElementById("video").srcObject = stream;
+      const video = document.getElementById("video");
+      video.srcObject = stream;
+
+      video.onloadedmetadata = ()=>{
+        detectFaceLoop(); // 🔥 start detection
+      };
     })
     .catch(err=>{
       console.error(err);
@@ -179,7 +236,6 @@ function stopCamera(){
     document.getElementById("video").srcObject = null;
   }
 
-  // reset foto
   let v = document.getElementById("video");
   let p = document.getElementById("preview");
 
@@ -188,6 +244,13 @@ function stopCamera(){
 
   fotoBase64 = "";
   sudahFoto = false;
+
+  // reset indikator
+  let status = document.getElementById("faceStatus");
+  if(status){
+    status.innerText = "❌ Wajah tidak terdeteksi";
+    status.style.background = "#ef4444";
+  }
 }
 
 // ================= USER =================
@@ -281,6 +344,12 @@ ambilGPS();
 function toggleFoto(){
   let v=document.getElementById("video");
   let p=document.getElementById("preview");
+
+  // 🔥 VALIDASI WAJAH
+  if(!sudahFoto && !faceDetected){
+    alert("Wajah tidak terdeteksi!");
+    return;
+  }
 
   if(!sudahFoto){
     let c=document.createElement("canvas");
