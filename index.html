@@ -375,12 +375,19 @@ function kirim(status){
   .then(res=>{
     document.getElementById("loadingText").innerText="";
 
-    if(res.status==="success"){
-      document.getElementById("successScreen").style.display="flex";
-      playVoiceSuccess();
-      document.getElementById("successSound").play();
-      setTimeout(()=>location.reload(),3000);
-    } else {
+if(res.status==="success"){
+
+  // 🔥 MAINKAN SUARA DULU (PRIORITAS)
+  document.getElementById("successSound").currentTime = 0;
+  document.getElementById("successSound").play();
+
+  playVoiceSuccess();
+
+  // baru tampilkan UI
+  document.getElementById("successScreen").style.display="flex";
+
+  setTimeout(()=>location.reload(),3000);
+} else {
       document.getElementById("errorSound").play();
       alert(res.message);
     }
