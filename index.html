@@ -133,7 +133,7 @@ let faceReady = false;
 
 async function loadFaceModel(){
   const MODEL_URL = "https://justadudewhohacks.github.io/face-api.js/models";
-  await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+  await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
   faceReady = true;
 }
 loadFaceModel();
@@ -147,13 +147,7 @@ async function detectFaceLoop(){
     return;
   }
 
- const detection = await faceapi.detectSingleFace(
-  video,
-  new faceapi.TinyFaceDetectorOptions({
-    inputSize: 160,
-    scoreThreshold: 0.2
-  })
-);
+const detection = await faceapi.detectSingleFace(video);
 
   faceDetected = !!detection;
 
