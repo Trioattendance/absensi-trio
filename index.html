@@ -150,8 +150,8 @@ async function detectFaceLoop(){
  const detection = await faceapi.detectSingleFace(
   video,
   new faceapi.TinyFaceDetectorOptions({
-    inputSize: 224,
-    scoreThreshold: 0.3
+    inputSize: 160,
+    scoreThreshold: 0.2
   })
 );
 
