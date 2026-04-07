@@ -83,7 +83,7 @@
 
 <div id="successScreen" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#f1f5f9;justify-content:center;align-items:center;">
   <div style="background:white;padding:30px;border-radius:20px;text-align:center;">
-    <h2 style="color:#10b981;">✔ Absensi Berhasil</h2>
+   <h2 id="successText" style="color:#10b981;">✔ Absensi Berhasil</h2>
   </div>
 </div>
 
@@ -203,11 +203,16 @@ function stopCamera(){
 }
 
 // ===== SUARA =====
-function playVoiceSuccess(){
-  const msg = new SpeechSynthesisUtterance("Absensi berhasil");
+function playVoiceSuccess(status){
+  let text = status === "Masuk"
+    ? "Absen masuk berhasil"
+    : "Absen pulang berhasil";
+
+  const msg = new SpeechSynthesisUtterance(text);
   msg.lang = "id-ID";
   msg.rate = 0.9;
   msg.pitch = 1;
+
   speechSynthesis.speak(msg);
 }
 
@@ -377,13 +382,20 @@ function kirim(status){
 
 if(res.status==="success"){
 
-  // 🔥 MAINKAN SUARA DULU (PRIORITAS)
+  // 🔥 suara dulu
   document.getElementById("successSound").currentTime = 0;
   document.getElementById("successSound").play();
 
-  playVoiceSuccess();
+  playVoiceSuccess(status);
 
-  // baru tampilkan UI
+  // 🔥 update text popup
+  let text = status === "Masuk"
+    ? "✔ Absen Masuk Berhasil"
+    : "✔ Absen Pulang Berhasil";
+
+  document.getElementById("successText").innerText = text;
+
+  // tampilkan popup
   document.getElementById("successScreen").style.display="flex";
 
   setTimeout(()=>location.reload(),3000);
