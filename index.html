@@ -81,6 +81,14 @@
 
 </div>
 
+<div id="successScreen" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#f1f5f9;justify-content:center;align-items:center;">
+  <div style="background:white;padding:30px;border-radius:20px;text-align:center;">
+    <h2 style="color:#10b981;">✔ Absensi Berhasil</h2>
+  </div>
+</div>
+
+<audio id="successSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio> <audio id="errorSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+
 <script>
 
 // ===== FACE (MEDIAPIPE) =====
@@ -88,9 +96,12 @@ let faceDetected = false;
 let cameraMP = null;
 
 function initFaceDetection(video){
- 
+
+  const status = document.getElementById("faceStatus");
+
   status.innerText = "⏳ Mendeteksi wajah...";
   status.style.background = "#f59e0b";
+
   const faceDetection = new FaceDetection({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`
   });
@@ -101,8 +112,6 @@ function initFaceDetection(video){
   });
 
   faceDetection.onResults(results=>{
-    const status = document.getElementById("faceStatus");
-
     if(results.detections && results.detections.length > 0){
       faceDetected = true;
       status.innerText = "✔ Wajah terdeteksi";
@@ -171,11 +180,12 @@ function startCamera(){
     const video = document.getElementById("video");
     video.srcObject = stream;
 
- video.onloadedmetadata = ()=>{
-  setTimeout(()=>{
-    initFaceDetection(video);
-  },300);
-};
+    video.onloadedmetadata = ()=>{
+      setTimeout(()=>{
+        initFaceDetection(video);
+      },300);
+    };
+  });
 }
 
 function stopCamera(){
@@ -192,6 +202,7 @@ function stopCamera(){
   faceDetected = false;
 }
 
+// ===== SUARA =====
 function playVoiceSuccess(){
   const msg = new SpeechSynthesisUtterance("Absensi berhasil");
   msg.lang = "id-ID";
@@ -249,7 +260,7 @@ function resetUI(){
   stopCamera();
 }
 
-// ===== GPS (ASLI) =====
+// ===== GPS =====
 function ambilGPS(){
   navigator.geolocation.getCurrentPosition(pos=>{
     currentLat = pos.coords.latitude;
@@ -335,15 +346,13 @@ function kirim(status){
   .then(res=>{
     document.getElementById("loadingText").innerText="";
 
-   if(res.status==="success"){
-  document.getElementById("successScreen").style.display="flex";
-
-  playVoiceSuccess(); // 🔊 suara wanita
-
-  document.getElementById("successSound").play(); // 🔊 bunyi beep
-
-  setTimeout(()=>location.reload(),3000);
-} else {
+    if(res.status==="success"){
+      document.getElementById("successScreen").style.display="flex";
+      playVoiceSuccess();
+      document.getElementById("successSound").play();
+      setTimeout(()=>location.reload(),3000);
+    } else {
+      document.getElementById("errorSound").play();
       alert(res.message);
     }
   });
