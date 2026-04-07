@@ -59,11 +59,10 @@
     .btn-masuk{background:#10b981;color:white;}
     .btn-pulang{background:#ef4444;color:white;}
     video,img{width:100%; border-radius:12px; margin-top:10px;}
-
     #successScreen{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#f1f5f9;justify-content:center;align-items:center;}
   </style>
 
-  <!-- 🔥 FACE API -->
+  <!-- FACE API -->
 
   <script defer src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
 
@@ -89,12 +88,11 @@
 </div>
 
 <div class="card">
-
   <div style="position:relative;">
     <video id="video" autoplay playsinline></video>
 
 ```
-<!-- 🔴🟢 INDIKATOR -->
+<!-- indikator tambahan (tidak mengubah UI utama) -->
 <div id="faceStatus"
   style="position:absolute;top:10px;left:10px;
   background:#ef4444;color:white;
@@ -127,9 +125,17 @@
 
 <script>
 
+// 🔊 SUARA WANITA
+function playVoiceSuccess(){
+  const msg = new SpeechSynthesisUtterance("Absensi berhasil");
+  msg.lang = "id-ID";
+  speechSynthesis.speak(msg);
+}
+
 // ================= FACE =================
 let faceDetected = false;
 let faceReady = false;
+let detectInterval = null;
 
 async function loadFaceModel(){
   const status = document.getElementById("faceStatus");
@@ -144,8 +150,6 @@ async function loadFaceModel(){
 }
 loadFaceModel();
 
-let detectInterval = null;
-
 function startFaceDetection(){
   if(detectInterval) return;
 
@@ -153,31 +157,20 @@ function startFaceDetection(){
   const status = document.getElementById("faceStatus");
 
   detectInterval = setInterval(async ()=>{
-
-    if(!faceReady || !video || video.readyState !== 4){
-      return;
-    }
+    if(!faceReady || video.readyState !== 4) return;
 
     try{
       const detection = await faceapi.detectSingleFace(video);
-
       faceDetected = !!detection;
 
-      if(faceDetected){
-        status.innerText = "✔ Wajah terdeteksi";
-        status.style.background = "#10b981";
-      }else{
-        status.innerText = "❌ Wajah tidak terdeteksi";
-        status.style.background = "#ef4444";
-      }
+      status.innerText = faceDetected ? "✔ Wajah terdeteksi" : "❌ Wajah tidak terdeteksi";
+      status.style.background = faceDetected ? "#10b981" : "#ef4444";
 
     }catch(err){
-      console.log("Detect error:", err);
+      console.log(err);
     }
 
-  }, 700); // 🔥 delay stabil
-}
-
+  },800);
 }
 
 // ================= GLOBAL =================
@@ -197,10 +190,13 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkK
 // ================= JAM =================
 function updateJam(){
   const now = new Date();
+
   const hari = now.toLocaleDateString("id-ID", { weekday: 'long' });
   const tanggal = now.toLocaleDateString("id-ID", { day:'2-digit', month:'long', year:'numeric' });
   const waktu = now.toLocaleTimeString("id-ID",{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  document.getElementById("jamWIB").innerText = `${hari}, ${tanggal} | ${waktu} WIB`;
+
+  document.getElementById("jamWIB").innerText =
+    `${hari}, ${tanggal} | ${waktu} WIB`;
 }
 setInterval(updateJam,1000); updateJam();
 
@@ -214,63 +210,8 @@ nikInput.addEventListener("input", ()=>{
   if(nik.length>=4){
     document.getElementById("loadingText").innerText="Mencari user...";
     cekUser(nik.slice(-4));
-  } else {
-    resetUI();
-  }
+  } else resetUI();
 });
-
-// ================= CAMERA =================
-function startCamera(){
-  if(cameraStream) return;
-
-  if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
-    .then(stream=>{
-      cameraStream = stream;
-      const video = document.getElementById("video");
-      video.srcObject = stream;
-
-      video.onloadedmetadata = ()=>{
-  startFaceDetection();
-};
-    })
-    .catch(err=>{
-      console.error(err);
-      alert("Kamera tidak diizinkan / tidak tersedia");
-      document.querySelector(".btn-foto").disabled = true;
-    });
-  } else {
-    alert("Browser tidak support kamera");
-  }
-}
-
-function stopCamera(){
-  if(cameraStream){
-    cameraStream.getTracks().forEach(track => track.stop());
-    cameraStream = null;
-    document.getElementById("video").srcObject = null;
-  }
-  
-if(detectInterval){
-  clearInterval(detectInterval);
-  detectInterval = null;
-}
-  let v = document.getElementById("video");
-  let p = document.getElementById("preview");
-
-  p.style.display = "none";
-  v.style.display = "block";
-
-  fotoBase64 = "";
-  sudahFoto = false;
-
-  // reset indikator
-  let status = document.getElementById("faceStatus");
-  if(status){
-    status.innerText = "❌ Wajah tidak terdeteksi";
-    status.style.background = "#ef4444";
-  }
-}
 
 // ================= USER =================
 function cekUser(nik){
@@ -278,7 +219,6 @@ function cekUser(nik){
   .then(res=>res.json())
   .then(res=>{
     document.getElementById("loadingText").innerText="";
-
     if(res.status==="success"){
       userData=res;
       document.getElementById("companyUser").innerText=res.company||"";
@@ -286,7 +226,6 @@ function cekUser(nik){
       document.getElementById("namaUser").innerText=res.nama;
 
       startCamera();
-
       cekStatus(res.nik);
     } else {
       resetUI();
@@ -331,6 +270,7 @@ function ambilGPS(){
   navigator.geolocation.getCurrentPosition(pos=>{
     currentLat = pos.coords.latitude;
     currentLng = pos.coords.longitude;
+
     currentAlamatLink = "https://www.google.com/maps?q=" + currentLat + "," + currentLng;
 
     currentAlamatText = "Mendeteksi lokasi...";
@@ -339,47 +279,95 @@ function ambilGPS(){
     fetch(`https://photon.komoot.io/reverse?lat=${currentLat}&lon=${currentLng}`)
     .then(res=>res.json())
     .then(data=>{
-      if(data.features && data.features.length>0){
-        let p=data.features[0].properties;
-        let parts=[];
+      if(data && data.features && data.features.length > 0){
+        let p = data.features[0].properties;
+
+        let parts = [];
+
         if(p.street) parts.push(p.street);
         if(p.village) parts.push(p.village);
-        if(p.district) parts.push("Kec. "+p.district);
+
+        if(p.district) parts.push("Kec. " + p.district);
+        else if(p.suburb) parts.push("Kec. " + p.suburb);
+
         if(p.city) parts.push(p.city);
+        else if(p.county) parts.push(p.county);
+
         if(p.state) parts.push(p.state);
 
-        currentAlamatText = parts.join(", ") || "Lokasi ditemukan";
-      } else currentAlamatText="Lokasi ditemukan";
+        let hasil = parts.join(", ");
 
-      document.getElementById("lokasiUser").innerText="📍 "+currentAlamatText;
+        currentAlamatText = hasil || "Lokasi ditemukan";
+      } else {
+        currentAlamatText = "Lokasi ditemukan";
+      }
+
+      document.getElementById("lokasiUser").innerText = "📍 " + currentAlamatText;
+    })
+    .catch(()=>{
+      currentAlamatText = "Lokasi ditemukan";
+      document.getElementById("lokasiUser").innerText = "📍 " + currentAlamatText;
     });
+
   },()=>{
     document.getElementById("lokasiUser").innerText="GPS tidak aktif";
   });
 }
 ambilGPS();
 
+// ================= CAMERA =================
+function startCamera(){
+  if(cameraStream) return;
+
+  navigator.mediaDevices.getUserMedia({video:true})
+  .then(stream=>{
+    cameraStream = stream;
+    const video = document.getElementById("video");
+    video.srcObject = stream;
+
+    video.onloadedmetadata = ()=>{
+      startFaceDetection();
+    };
+  });
+}
+
+function stopCamera(){
+  if(cameraStream){
+    cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
+  }
+
+  if(detectInterval){
+    clearInterval(detectInterval);
+    detectInterval = null;
+  }
+
+  faceDetected = false;
+}
+
 // ================= FOTO =================
 function toggleFoto(){
   let v=document.getElementById("video");
   let p=document.getElementById("preview");
 
-  // 🔥 VALIDASI WAJAH
-  if(!sudahFoto && !faceDetected){
-    alert("Wajah tidak terdeteksi!");
-    return;
-  }
-
   if(!sudahFoto){
+
+    if(!faceDetected){
+      alert("Wajah tidak terdeteksi!");
+      return;
+    }
+
     let c=document.createElement("canvas");
     c.width=v.videoWidth; c.height=v.videoHeight;
     c.getContext("2d").drawImage(v,0,0);
+
     fotoBase64=c.toDataURL("image/jpeg");
 
     p.src=fotoBase64;
     p.style.display="block";
     v.style.display="none";
     sudahFoto=true;
+
   }else{
     p.style.display="none";
     v.style.display="block";
