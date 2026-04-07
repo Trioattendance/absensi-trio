@@ -400,11 +400,14 @@ function kirim(status){
     document.getElementById("loadingText").innerText="";
 
     if(res.status==="success"){
-      document.getElementById("successScreen").style.display="flex";
-      playVoiceSuccess();
-      document.getElementById("successSound").play();
-      setTimeout(()=>location.reload(),3000);
-    } else {
+  document.getElementById("successScreen").style.display="flex";
+
+  playVoiceSuccess(); // 🔊 suara wanita
+
+  document.getElementById("successSound").play(); // 🔊 bunyi beep
+
+  setTimeout(()=>location.reload(),3000);
+} else {
       document.getElementById("errorSound").play();
       alert(res.message);
     }
