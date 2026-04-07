@@ -268,29 +268,41 @@ function ambilGPS(){
 
     currentAlamatLink = "https://www.google.com/maps?q=" + currentLat + "," + currentLng;
 
-    currentAlamatText = "Mendeteksi lokasi...";
-    document.getElementById("lokasiUser").innerText = "📍 " + currentAlamatText;
+    // tampil langsung koordinat dulu (anti kosong)
+    document.getElementById("lokasiUser").innerText =
+      `📍 ${currentLat.toFixed(5)}, ${currentLng.toFixed(5)}`;
 
+    // ambil alamat (optional)
     fetch(`https://photon.komoot.io/reverse?lat=${currentLat}&lon=${currentLng}`)
     .then(res=>res.json())
     .then(data=>{
       if(data.features && data.features.length>0){
         let p=data.features[0].properties;
+
         let parts=[];
         if(p.street) parts.push(p.street);
-        if(p.village) parts.push(p.village);
-        if(p.district) parts.push("Kec. "+p.district);
         if(p.city) parts.push(p.city);
         if(p.state) parts.push(p.state);
 
-        currentAlamatText = parts.join(", ") || "Lokasi ditemukan";
-      } else currentAlamatText="Lokasi ditemukan";
+        let alamat = parts.join(", ");
 
-      document.getElementById("lokasiUser").innerText="📍 "+currentAlamatText;
+        if(alamat){
+          document.getElementById("lokasiUser").innerText = "📍 " + alamat;
+        }
+      }
+    })
+    .catch(()=>{
+      // biarkan tetap koordinat
     });
+
+  },()=>{
+    document.getElementById("lokasiUser").innerText="GPS tidak diizinkan";
+  },{
+    enableHighAccuracy:true,
+    timeout:10000
   });
 }
-ambilGPS();
+  ambilGPS();
 
 
 
