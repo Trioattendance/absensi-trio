@@ -164,10 +164,14 @@ nikInput.addEventListener("input", ()=>{
   let nik = nikInput.value.replace(/\D/g,'');
   nikInput.value = nik;
 
-  if(nik.length>=4){
-    document.getElementById("loadingText").innerText="Mencari user...";
+  if(nik.length >= 4){
+    document.getElementById("loadingText").innerText = "Mencari user...";
     cekUser(nik.slice(-4));
-  } else resetUI();
+  }
+
+  if(nik.length < 4){
+    resetUI();
+  }
 });
 
 // ===== CAMERA =====
