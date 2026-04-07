@@ -144,14 +144,39 @@ async function loadFaceModel(){
 }
 loadFaceModel();
 
-async function detectFaceLoop(){
+let detectInterval = null;
+
+function startFaceDetection(){
+  if(detectInterval) return;
+
   const video = document.getElementById("video");
   const status = document.getElementById("faceStatus");
 
-  if(!faceReady || !video || video.readyState !== 4){
-    requestAnimationFrame(detectFaceLoop);
-    return;
-  }
+  detectInterval = setInterval(async ()=>{
+
+    if(!faceReady || !video || video.readyState !== 4){
+      return;
+    }
+
+    try{
+      const detection = await faceapi.detectSingleFace(video);
+
+      faceDetected = !!detection;
+
+      if(faceDetected){
+        status.innerText = "✔ Wajah terdeteksi";
+        status.style.background = "#10b981";
+      }else{
+        status.innerText = "❌ Wajah tidak terdeteksi";
+        status.style.background = "#ef4444";
+      }
+
+    }catch(err){
+      console.log("Detect error:", err);
+    }
+
+  }, 700); // 🔥 delay stabil
+}
 
 const detection = await faceapi.detectSingleFace(video);
 
@@ -219,8 +244,8 @@ function startCamera(){
       video.srcObject = stream;
 
       video.onloadedmetadata = ()=>{
-        detectFaceLoop(); // 🔥 start detection
-      };
+  startFaceDetection();
+};
     })
     .catch(err=>{
       console.error(err);
@@ -238,7 +263,11 @@ function stopCamera(){
     cameraStream = null;
     document.getElementById("video").srcObject = null;
   }
-
+  
+if(detectInterval){
+  clearInterval(detectInterval);
+  detectInterval = null;
+}
   let v = document.getElementById("video");
   let p = document.getElementById("preview");
 
