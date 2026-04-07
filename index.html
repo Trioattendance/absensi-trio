@@ -178,19 +178,6 @@ function startFaceDetection(){
   }, 700); // 🔥 delay stabil
 }
 
-const detection = await faceapi.detectSingleFace(video);
-
-  faceDetected = !!detection;
-
-  if(faceDetected){
-    status.innerText = "✔ Wajah terdeteksi";
-    status.style.background = "#10b981";
-  }else{
-    status.innerText = "❌ Wajah tidak terdeteksi";
-    status.style.background = "#ef4444";
-  }
-
-  requestAnimationFrame(detectFaceLoop);
 }
 
 // ================= GLOBAL =================
