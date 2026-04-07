@@ -88,6 +88,9 @@ let faceDetected = false;
 let cameraMP = null;
 
 function initFaceDetection(video){
+ 
+  status.innerText = "⏳ Mendeteksi wajah...";
+  status.style.background = "#f59e0b";
   const faceDetection = new FaceDetection({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`
   });
@@ -168,10 +171,11 @@ function startCamera(){
     const video = document.getElementById("video");
     video.srcObject = stream;
 
-    video.onloadedmetadata = ()=>{
-      initFaceDetection(video); // 🔥 MediaPipe start
-    };
-  });
+ video.onloadedmetadata = ()=>{
+  setTimeout(()=>{
+    initFaceDetection(video);
+  },300);
+};
 }
 
 function stopCamera(){
@@ -179,6 +183,13 @@ function stopCamera(){
     cameraStream.getTracks().forEach(track => track.stop());
     cameraStream = null;
   }
+
+  if(cameraMP){
+    cameraMP.stop();
+    cameraMP = null;
+  }
+
+  faceDetected = false;
 }
 
 function playVoiceSuccess(){
