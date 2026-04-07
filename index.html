@@ -151,9 +151,18 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkK
 // ===== JAM =====
 function updateJam(){
   const now = new Date();
+
+  const hari = now.toLocaleDateString("id-ID", { weekday: 'long' });
+  const tanggal = now.toLocaleDateString("id-ID", { day:'2-digit', month:'long', year:'numeric' });
+
+  const waktu = now.toLocaleTimeString("id-ID", {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  }).replace(/\./g, ":"); // 🔥 GANTI . JADI :
+
   document.getElementById("jamWIB").innerText =
-    now.toLocaleDateString("id-ID",{weekday:'long',day:'2-digit',month:'long',year:'numeric'})
-    +" | "+now.toLocaleTimeString("id-ID")+" WIB";
+    `${hari}, ${tanggal} | ${waktu} WIB`;
 }
 setInterval(updateJam,1000); updateJam();
 
