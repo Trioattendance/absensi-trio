@@ -10,61 +10,28 @@
     .header { text-align:center; padding:15px; background:#3b82f6; color:white; font-weight:bold; border-radius:0 0 20px 20px; }
     .container { max-width:450px; margin:auto; padding:15px; }
     .card { background:white; padding:20px; border-radius:16px; margin-top:15px; box-shadow:0 4px 12px rgba(0,0,0,0.08);}
-
-    .jam {
-      text-align:center;
-      font-weight:bold;
-      color:#3b82f6;
-      margin-bottom:10px;
-      font-size:15px;
-      letter-spacing:0.5px;
-    }
+    .jam { text-align:center; font-weight:bold; color:#3b82f6; margin-bottom:10px; font-size:15px; }
 
     .input-login {
-      width:70%;
-      margin:0 auto;
-      display:block;
-      padding:10px;
-      border-radius:12px;
-      text-align:center;
-      font-size:15px;
-      letter-spacing:1.5px;
-      font-weight:500;
+      width:70%; margin:0 auto; display:block; padding:10px;
+      border-radius:12px; text-align:center; font-size:15px;
       border:2px solid rgba(0,0,0,0.2);
-      background:rgba(255,255,255,0.5);
-      backdrop-filter: blur(6px);
-      outline:none;
-      transition:0.2s;
     }
 
-    .input-login::placeholder{
-      color:rgba(0,0,0,0.4);
-      font-size:13px;
-    }
-
-    .input-login:focus{
-      border-color:#3b82f6;
-      background:rgba(255,255,255,0.85);
-    }
-    
-    .btn-pulang:disabled {
-      background: #9ca3af !important;
-      cursor: not-allowed;
-      opacity: 0.8;
-    }
-
+    .btn-pulang:disabled { background:#9ca3af !important; cursor:not-allowed; }
     .info { text-align:center; font-size:14px; margin-top:5px; }
     button { width:100%; padding:14px; margin-top:10px; border-radius:12px; border:none; font-weight:bold; }
     .btn-foto{background:#3b82f6;color:white;}
     .btn-masuk{background:#10b981;color:white;}
     .btn-pulang{background:#ef4444;color:white;}
     video,img{width:100%; border-radius:12px; margin-top:10px;}
-    #successScreen{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#f1f5f9;justify-content:center;align-items:center;}
   </style>
 
-  <!-- FACE API -->
+  <!-- MediaPipe -->
 
-  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
 </head>
 
@@ -92,7 +59,6 @@
     <video id="video" autoplay playsinline></video>
 
 ```
-<!-- indikator tambahan (tidak mengubah UI utama) -->
 <div id="faceStatus"
   style="position:absolute;top:10px;left:10px;
   background:#ef4444;color:white;
@@ -115,65 +81,48 @@
 
 </div>
 
-<div id="successScreen">
-  <div style="background:white;padding:30px;border-radius:20px;text-align:center;">
-    <h2 style="color:#10b981;">✔ Absensi Berhasil</h2>
-  </div>
-</div>
-
-<audio id="successSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio> <audio id="errorSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
-
 <script>
 
-// 🔊 SUARA WANITA
-function playVoiceSuccess(){
-  const msg = new SpeechSynthesisUtterance("Absensi berhasil");
-  msg.lang = "id-ID";
-  speechSynthesis.speak(msg);
-}
-
-// ================= FACE =================
+// ===== FACE (MEDIAPIPE) =====
 let faceDetected = false;
-let faceReady = false;
-let detectInterval = null;
+let cameraMP = null;
 
-async function loadFaceModel(){
-  const status = document.getElementById("faceStatus");
-  status.innerText = "⏳ Loading AI...";
+function initFaceDetection(video){
+  const faceDetection = new FaceDetection({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`
+  });
 
-  const MODEL_URL = "https://justadudewhohacks.github.io/face-api.js/models";
+  faceDetection.setOptions({
+    model: "short",
+    minDetectionConfidence: 0.5
+  });
 
-  await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
+  faceDetection.onResults(results=>{
+    const status = document.getElementById("faceStatus");
 
-  faceReady = true;
-  status.innerText = "❌ Wajah tidak terdeteksi";
-}
-loadFaceModel();
-
-function startFaceDetection(){
-  if(detectInterval) return;
-
-  const video = document.getElementById("video");
-  const status = document.getElementById("faceStatus");
-
-  detectInterval = setInterval(async ()=>{
-    if(!faceReady || video.readyState !== 4) return;
-
-    try{
-      const detection = await faceapi.detectSingleFace(video);
-      faceDetected = !!detection;
-
-      status.innerText = faceDetected ? "✔ Wajah terdeteksi" : "❌ Wajah tidak terdeteksi";
-      status.style.background = faceDetected ? "#10b981" : "#ef4444";
-
-    }catch(err){
-      console.log(err);
+    if(results.detections && results.detections.length > 0){
+      faceDetected = true;
+      status.innerText = "✔ Wajah terdeteksi";
+      status.style.background = "#10b981";
+    } else {
+      faceDetected = false;
+      status.innerText = "❌ Wajah tidak terdeteksi";
+      status.style.background = "#ef4444";
     }
+  });
 
-  },800);
+  cameraMP = new Camera(video, {
+    onFrame: async () => {
+      await faceDetection.send({image: video});
+    },
+    width: 320,
+    height: 240
+  });
+
+  cameraMP.start();
 }
 
-// ================= GLOBAL =================
+// ===== GLOBAL =====
 let userData = null;
 let fotoBase64 = "";
 let sudahFoto = false;
@@ -187,20 +136,16 @@ let cameraStream = null;
 
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec";
 
-// ================= JAM =================
+// ===== JAM =====
 function updateJam(){
   const now = new Date();
-
-  const hari = now.toLocaleDateString("id-ID", { weekday: 'long' });
-  const tanggal = now.toLocaleDateString("id-ID", { day:'2-digit', month:'long', year:'numeric' });
-  const waktu = now.toLocaleTimeString("id-ID",{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-
   document.getElementById("jamWIB").innerText =
-    `${hari}, ${tanggal} | ${waktu} WIB`;
+    now.toLocaleDateString("id-ID",{weekday:'long',day:'2-digit',month:'long',year:'numeric'})
+    +" | "+now.toLocaleTimeString("id-ID")+" WIB";
 }
 setInterval(updateJam,1000); updateJam();
 
-// ================= INPUT =================
+// ===== INPUT =====
 const nikInput = document.getElementById("nik");
 
 nikInput.addEventListener("input", ()=>{
@@ -213,7 +158,38 @@ nikInput.addEventListener("input", ()=>{
   } else resetUI();
 });
 
-// ================= USER =================
+// ===== CAMERA =====
+function startCamera(){
+  if(cameraStream) return;
+
+  navigator.mediaDevices.getUserMedia({video:true})
+  .then(stream=>{
+    cameraStream = stream;
+    const video = document.getElementById("video");
+    video.srcObject = stream;
+
+    video.onloadedmetadata = ()=>{
+      initFaceDetection(video); // 🔥 MediaPipe start
+    };
+  });
+}
+
+function stopCamera(){
+  if(cameraStream){
+    cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
+  }
+}
+
+function playVoiceSuccess(){
+  const msg = new SpeechSynthesisUtterance("Absensi berhasil");
+  msg.lang = "id-ID";
+  msg.rate = 0.9;
+  msg.pitch = 1;
+  speechSynthesis.speak(msg);
+}
+
+// ===== USER =====
 function cekUser(nik){
   fetch(WEB_APP_URL+"?action=getUser&nik="+nik)
   .then(res=>res.json())
@@ -244,9 +220,7 @@ function cekStatus(nik){
     if(res.masuk){
       txt+="✔ Masuk ";
       btnPulang.disabled = false;
-    } else {
-      btnPulang.disabled = true;
-    }
+    } else btnPulang.disabled = true;
 
     if(res.pulang) txt+="✔ Pulang";
     if(!txt) txt="Belum absen hari ini";
@@ -261,11 +235,10 @@ function resetUI(){
   document.getElementById("nikFull").innerText="";
   document.getElementById("namaUser").innerText="";
   document.getElementById("statusUser").innerText="";
-
   stopCamera();
 }
 
-// ================= GPS =================
+// ===== GPS (ASLI) =====
 function ambilGPS(){
   navigator.geolocation.getCurrentPosition(pos=>{
     currentLat = pos.coords.latitude;
@@ -279,73 +252,25 @@ function ambilGPS(){
     fetch(`https://photon.komoot.io/reverse?lat=${currentLat}&lon=${currentLng}`)
     .then(res=>res.json())
     .then(data=>{
-      if(data && data.features && data.features.length > 0){
-        let p = data.features[0].properties;
-
-        let parts = [];
-
+      if(data.features && data.features.length>0){
+        let p=data.features[0].properties;
+        let parts=[];
         if(p.street) parts.push(p.street);
         if(p.village) parts.push(p.village);
-
-        if(p.district) parts.push("Kec. " + p.district);
-        else if(p.suburb) parts.push("Kec. " + p.suburb);
-
+        if(p.district) parts.push("Kec. "+p.district);
         if(p.city) parts.push(p.city);
-        else if(p.county) parts.push(p.county);
-
         if(p.state) parts.push(p.state);
 
-        let hasil = parts.join(", ");
+        currentAlamatText = parts.join(", ") || "Lokasi ditemukan";
+      } else currentAlamatText="Lokasi ditemukan";
 
-        currentAlamatText = hasil || "Lokasi ditemukan";
-      } else {
-        currentAlamatText = "Lokasi ditemukan";
-      }
-
-      document.getElementById("lokasiUser").innerText = "📍 " + currentAlamatText;
-    })
-    .catch(()=>{
-      currentAlamatText = "Lokasi ditemukan";
-      document.getElementById("lokasiUser").innerText = "📍 " + currentAlamatText;
+      document.getElementById("lokasiUser").innerText="📍 "+currentAlamatText;
     });
-
-  },()=>{
-    document.getElementById("lokasiUser").innerText="GPS tidak aktif";
   });
 }
 ambilGPS();
 
-// ================= CAMERA =================
-function startCamera(){
-  if(cameraStream) return;
-
-  navigator.mediaDevices.getUserMedia({video:true})
-  .then(stream=>{
-    cameraStream = stream;
-    const video = document.getElementById("video");
-    video.srcObject = stream;
-
-    video.onloadedmetadata = ()=>{
-      startFaceDetection();
-    };
-  });
-}
-
-function stopCamera(){
-  if(cameraStream){
-    cameraStream.getTracks().forEach(track => track.stop());
-    cameraStream = null;
-  }
-
-  if(detectInterval){
-    clearInterval(detectInterval);
-    detectInterval = null;
-  }
-
-  faceDetected = false;
-}
-
-// ================= FOTO =================
+// ===== FOTO =====
 function toggleFoto(){
   let v=document.getElementById("video");
   let p=document.getElementById("preview");
@@ -376,7 +301,7 @@ function toggleFoto(){
   }
 }
 
-// ================= KIRIM =================
+// ===== KIRIM =====
 function kirim(status){
   if(!userData){ alert("User belum terdeteksi"); return;}
   if(!fotoBase64){ alert("Ambil foto dulu"); return;}
@@ -399,7 +324,7 @@ function kirim(status){
   .then(res=>{
     document.getElementById("loadingText").innerText="";
 
-    if(res.status==="success"){
+   if(res.status==="success"){
   document.getElementById("successScreen").style.display="flex";
 
   playVoiceSuccess(); // 🔊 suara wanita
@@ -408,7 +333,6 @@ function kirim(status){
 
   setTimeout(()=>location.reload(),3000);
 } else {
-      document.getElementById("errorSound").play();
       alert(res.message);
     }
   });
