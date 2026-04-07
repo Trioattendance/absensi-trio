@@ -132,9 +132,15 @@ let faceDetected = false;
 let faceReady = false;
 
 async function loadFaceModel(){
+  const status = document.getElementById("faceStatus");
+  status.innerText = "⏳ Loading AI...";
+
   const MODEL_URL = "https://justadudewhohacks.github.io/face-api.js/models";
+
   await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
+
   faceReady = true;
+  status.innerText = "❌ Wajah tidak terdeteksi";
 }
 loadFaceModel();
 
