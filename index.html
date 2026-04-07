@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html>
 <head>
   <title>Absensi Karyawan</title>
@@ -10,7 +11,6 @@
     .container { max-width:450px; margin:auto; padding:15px; }
     .card { background:white; padding:20px; border-radius:16px; margin-top:15px; box-shadow:0 4px 12px rgba(0,0,0,0.08);}
 
-    /* 🔥 UPDATE JAM HORIZONTAL */
     .jam {
       text-align:center;
       font-weight:bold;
@@ -47,11 +47,12 @@
       background:rgba(255,255,255,0.85);
     }
     
-.btn-pulang:disabled {
-  background: #9ca3af !important;
-  cursor: not-allowed;
-  opacity: 0.8;
-}
+    .btn-pulang:disabled {
+      background: #9ca3af !important;
+      cursor: not-allowed;
+      opacity: 0.8;
+    }
+
     .info { text-align:center; font-size:14px; margin-top:5px; }
     button { width:100%; padding:14px; margin-top:10px; border-radius:12px; border:none; font-weight:bold; }
     .btn-foto{background:#3b82f6;color:white;}
@@ -60,6 +61,7 @@
     video,img{width:100%; border-radius:12px; margin-top:10px;}
     #successScreen{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#f1f5f9;justify-content:center;align-items:center;}
   </style>
+
 </head>
 
 <body>
@@ -89,7 +91,7 @@
 
 <div class="card">
  <button class="btn-masuk" onclick="kirim('Masuk')">✅ Absen Masuk</button>
-<button class="btn-pulang" id="btnPulang" onclick="kirim('Pulang')" disabled>🏠 Absen Pulang</button>
+ <button class="btn-pulang" id="btnPulang" onclick="kirim('Pulang')" disabled>🏠 Absen Pulang</button>
 </div>
 
 </div>
@@ -100,8 +102,7 @@
   </div>
 </div>
 
-<audio id="successSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
-<audio id="errorSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+<audio id="successSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio> <audio id="errorSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
 
 <script>
 
@@ -122,18 +123,17 @@ let currentLng = 0;
 let currentAlamatText = "";
 let currentAlamatLink = "";
 
+let cameraStream = null;
+
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxZuJSX46ZR5xGl6PkKyVesxlzGxhbwsGbiclXJrY0YavnfTJ53XHX8uCGkDoXhw5g/exec";
 
-// ================= JAM UPDATE =================
+// ================= JAM =================
 function updateJam(){
   const now = new Date();
-
   const hari = now.toLocaleDateString("id-ID", { weekday: 'long' });
   const tanggal = now.toLocaleDateString("id-ID", { day:'2-digit', month:'long', year:'numeric' });
   const waktu = now.toLocaleTimeString("id-ID",{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-
-  document.getElementById("jamWIB").innerText =
-    `${hari}, ${tanggal} | ${waktu} WIB`;
+  document.getElementById("jamWIB").innerText = `${hari}, ${tanggal} | ${waktu} WIB`;
 }
 setInterval(updateJam,1000); updateJam();
 
@@ -147,8 +147,48 @@ nikInput.addEventListener("input", ()=>{
   if(nik.length>=4){
     document.getElementById("loadingText").innerText="Mencari user...";
     cekUser(nik.slice(-4));
-  } else resetUI();
+  } else {
+    resetUI();
+  }
 });
+
+// ================= CAMERA =================
+function startCamera(){
+  if(cameraStream) return;
+
+  if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+    .then(stream=>{
+      cameraStream = stream;
+      document.getElementById("video").srcObject = stream;
+    })
+    .catch(err=>{
+      console.error(err);
+      alert("Kamera tidak diizinkan / tidak tersedia");
+      document.querySelector(".btn-foto").disabled = true;
+    });
+  } else {
+    alert("Browser tidak support kamera");
+  }
+}
+
+function stopCamera(){
+  if(cameraStream){
+    cameraStream.getTracks().forEach(track => track.stop());
+    cameraStream = null;
+    document.getElementById("video").srcObject = null;
+  }
+
+  // reset foto
+  let v = document.getElementById("video");
+  let p = document.getElementById("preview");
+
+  p.style.display = "none";
+  v.style.display = "block";
+
+  fotoBase64 = "";
+  sudahFoto = false;
+}
 
 // ================= USER =================
 function cekUser(nik){
@@ -156,11 +196,15 @@ function cekUser(nik){
   .then(res=>res.json())
   .then(res=>{
     document.getElementById("loadingText").innerText="";
+
     if(res.status==="success"){
       userData=res;
       document.getElementById("companyUser").innerText=res.company||"";
       document.getElementById("nikFull").innerText=res.nik;
       document.getElementById("namaUser").innerText=res.nama;
+
+      startCamera();
+
       cekStatus(res.nik);
     } else {
       resetUI();
@@ -174,18 +218,16 @@ function cekStatus(nik){
   .then(res=>res.json())
   .then(res=>{
     let txt="";
-
     let btnPulang = document.getElementById("btnPulang");
 
     if(res.masuk){
       txt+="✔ Masuk ";
-      btnPulang.disabled = false; // 🔥 AKTIFKAN
+      btnPulang.disabled = false;
     } else {
-      btnPulang.disabled = true; // 🔥 DISABLE
+      btnPulang.disabled = true;
     }
 
     if(res.pulang) txt+="✔ Pulang";
-
     if(!txt) txt="Belum absen hari ini";
 
     document.getElementById("statusUser").innerText=txt;
@@ -198,6 +240,8 @@ function resetUI(){
   document.getElementById("nikFull").innerText="";
   document.getElementById("namaUser").innerText="";
   document.getElementById("statusUser").innerText="";
+
+  stopCamera();
 }
 
 // ================= GPS =================
@@ -205,62 +249,33 @@ function ambilGPS(){
   navigator.geolocation.getCurrentPosition(pos=>{
     currentLat = pos.coords.latitude;
     currentLng = pos.coords.longitude;
-
-    // link maps tetap
     currentAlamatLink = "https://www.google.com/maps?q=" + currentLat + "," + currentLng;
 
-    // default dulu
     currentAlamatText = "Mendeteksi lokasi...";
     document.getElementById("lokasiUser").innerText = "📍 " + currentAlamatText;
 
-    // 🔥 ambil alamat lagi (Photon)
     fetch(`https://photon.komoot.io/reverse?lat=${currentLat}&lon=${currentLng}`)
     .then(res=>res.json())
     .then(data=>{
-      if(data && data.features && data.features.length > 0){
-        let p = data.features[0].properties;
-
-        let parts = [];
-
+      if(data.features && data.features.length>0){
+        let p=data.features[0].properties;
+        let parts=[];
         if(p.street) parts.push(p.street);
-
         if(p.village) parts.push(p.village);
-
-        if(p.district) parts.push("Kec. " + p.district);
-        else if(p.suburb) parts.push("Kec. " + p.suburb);
-
+        if(p.district) parts.push("Kec. "+p.district);
         if(p.city) parts.push(p.city);
-        else if(p.county) parts.push(p.county);
-
         if(p.state) parts.push(p.state);
 
-        let hasil = parts.join(", ");
+        currentAlamatText = parts.join(", ") || "Lokasi ditemukan";
+      } else currentAlamatText="Lokasi ditemukan";
 
-        if(hasil && hasil.length > 5){
-          currentAlamatText = hasil;
-        } else {
-          currentAlamatText = "Lokasi ditemukan";
-        }
-      } else {
-        currentAlamatText = "Lokasi ditemukan";
-      }
-
-      document.getElementById("lokasiUser").innerText = "📍 " + currentAlamatText;
-    })
-    .catch(()=>{
-      currentAlamatText = "Lokasi ditemukan";
-      document.getElementById("lokasiUser").innerText = "📍 " + currentAlamatText;
+      document.getElementById("lokasiUser").innerText="📍 "+currentAlamatText;
     });
-
   },()=>{
     document.getElementById("lokasiUser").innerText="GPS tidak aktif";
   });
 }
 ambilGPS();
-
-// ================= CAMERA =================
-navigator.mediaDevices.getUserMedia({video:true})
-.then(stream=>{document.getElementById("video").srcObject=stream;});
 
 // ================= FOTO =================
 function toggleFoto(){
