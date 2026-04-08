@@ -234,62 +234,24 @@ function cekUser(nik){
   fetch(WEB_APP_URL+"?action=getUser&nik="+nik)
   .then(res=>res.json())
   .then(res=>{
-
     document.getElementById("loadingText").innerText="";
-
-    // 🔥 TAMBAHKAN DI SINI
-    if(res.status === "multiple"){
-
-      let list = "Pilih user:\n\n";
-
-      res.data.forEach((u,i)=>{
-        list += `${i+1}. ${u.nama}\n`;
-      });
-
-      let pilih = prompt(list);
-
-      let user = res.data[pilih-1];
-
-      if(!user){
-        alert("Pilihan tidak valid");
-        return;
-      }
-
-      userData = user;
-
-      document.getElementById("companyUser").innerText = user.company || "";
-      document.getElementById("nikFull").innerText = user.nik;
-      document.getElementById("namaUser").innerText = user.nama;
-
-      startCamera();
-      cekStatus(user.nik);
-
-      return; // 🔥 PENTING (biar tidak lanjut ke bawah)
-    }
-
-    // 🔥 BIARKAN INI (VERSI LAMA)
     if(res.status==="success"){
       userData=res;
-
       document.getElementById("companyUser").innerText=res.company||"";
       document.getElementById("nikFull").innerText=res.nik;
       document.getElementById("namaUser").innerText=res.nama;
 
       startCamera();
       cekStatus(res.nik);
-
     } else {
       resetUI();
       document.getElementById("namaUser").innerText="User tidak ditemukan";
     }
-
   });
 }
 
 function cekStatus(nik){
-  let company = document.getElementById("companyUser").innerText || "";
-
-fetch(WEB_APP_URL+"?action=getUser&nik="+nik+"&company="+encodeURIComponent(company))
+  fetch(WEB_APP_URL+"?action=cekStatus&nik="+nik)
   .then(res=>res.json())
   .then(res=>{
     let txt="";
