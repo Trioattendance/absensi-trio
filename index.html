@@ -268,9 +268,10 @@ function cekUser(nik){
   });
 }
 
-let company = document.getElementById("companyUser").innerText || "";
+function cekStatus(nik){
+  let company = document.getElementById("companyUser").innerText || "";
 
-fetch(WEB_APP_URL+"?action=cekStatus&nik="+nik+"&company="+company)
+  fetch(WEB_APP_URL+"?action=cekStatus&nik="+nik+"&company="+company)
   .then(res=>res.json())
   .then(res=>{
     let txt="";
@@ -287,7 +288,6 @@ fetch(WEB_APP_URL+"?action=cekStatus&nik="+nik+"&company="+company)
     document.getElementById("statusUser").innerText=txt;
   });
 }
-
 function resetUI(){
   userData = null;
 
