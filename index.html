@@ -167,38 +167,41 @@ function updateJam(){
 setInterval(updateJam,1000); updateJam();
 
 // ===== INPUT =====
+// ===== INPUT =====
 const nikInput = document.getElementById("nik");
 
+let timeout;
+
 nikInput.addEventListener("input", ()=>{
+  clearTimeout(timeout);
+
   let nik = nikInput.value.replace(/\D/g,'');
   nikInput.value = nik;
 
-if(nik.length >= 4){
+  timeout = setTimeout(()=>{
 
-  let kirimNik = nik;
+    if(nik.length >= 4){
 
-  if(nik.length > 6){
-    // FULL NIK
-    kirimNik = nik;
+      let kirimNik = nik;
 
-  } else if(nik.length >= 6){
-    // 6 digit terakhir
-    kirimNik = nik.slice(-6);
+      if(nik.length > 6){
+        kirimNik = nik;
+      } else if(nik.length >= 6){
+        kirimNik = nik.slice(-6);
+      } else {
+        kirimNik = nik.slice(-4);
+      }
 
-  } else {
-    // 4 digit terakhir
-    kirimNik = nik.slice(-4);
-  }
+      document.getElementById("loadingText").innerText = "Mencari user...";
+      cekUser(kirimNik);
+    }
 
-  document.getElementById("loadingText").innerText = "Mencari user...";
-  cekUser(kirimNik);
-}
+    if(nik.length < 4){
+      resetUI();
+    }
 
-if(nik.length < 4){
-  resetUI();
-}
+  }, 500);
 });
-
 // ===== CAMERA =====
 function startCamera(){
   if(cameraStream) return;
