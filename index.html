@@ -44,7 +44,7 @@
 <div class="card">
   <div class="jam" id="jamWIB">Loading...</div>
 
- <input type="text" id="nik" class="input-login" placeholder="Masukkan NIK (4 / 6 digit terakhir / full)" maxlength="20">
+  <input type="text" id="nik" class="input-login" placeholder="Masukkan 4 digit terakhir NIK" maxlength="10">
 
   <div class="info" id="companyUser"></div>
   <div class="info" id="nikFull"></div>
@@ -167,41 +167,22 @@ function updateJam(){
 setInterval(updateJam,1000); updateJam();
 
 // ===== INPUT =====
-// ===== INPUT =====
 const nikInput = document.getElementById("nik");
 
-let timeout;
-
 nikInput.addEventListener("input", ()=>{
-  clearTimeout(timeout);
-
   let nik = nikInput.value.replace(/\D/g,'');
   nikInput.value = nik;
 
-  timeout = setTimeout(()=>{
+  if(nik.length >= 4){
+    document.getElementById("loadingText").innerText = "Mencari user...";
+    cekUser(nik.slice(-4));
+  }
 
-    if(nik.length >= 4){
-
-      let kirimNik = nik;
-
-      if(nik.length > 6){
-        kirimNik = nik;
-      } else if(nik.length >= 6){
-        kirimNik = nik.slice(-6);
-      } else {
-        kirimNik = nik.slice(-4);
-      }
-
-      document.getElementById("loadingText").innerText = "Mencari user...";
-      cekUser(kirimNik);
-    }
-
-    if(nik.length < 4){
-      resetUI();
-    }
-
-  }, 500);
+  if(nik.length < 4){
+    resetUI();
+  }
 });
+
 // ===== CAMERA =====
 function startCamera(){
   if(cameraStream) return;
@@ -250,9 +231,7 @@ function playVoiceSuccess(status){
 
 // ===== USER =====
 function cekUser(nik){
-  let company = document.getElementById("companyUser").innerText || "";
-
-  fetch(WEB_APP_URL+"?action=getUser&nik="+nik+"&company="+company)
+  fetch(WEB_APP_URL+"?action=getUser&nik="+nik)
   .then(res=>res.json())
   .then(res=>{
     document.getElementById("loadingText").innerText="";
@@ -272,9 +251,7 @@ function cekUser(nik){
 }
 
 function cekStatus(nik){
-  let company = document.getElementById("companyUser").innerText || "";
-
-  fetch(WEB_APP_URL+"?action=cekStatus&nik="+nik+"&company="+company)
+  fetch(WEB_APP_URL+"?action=cekStatus&nik="+nik)
   .then(res=>res.json())
   .then(res=>{
     let txt="";
@@ -291,6 +268,7 @@ function cekStatus(nik){
     document.getElementById("statusUser").innerText=txt;
   });
 }
+
 function resetUI(){
   userData = null;
 
