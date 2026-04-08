@@ -287,7 +287,9 @@ function cekUser(nik){
 }
 
 function cekStatus(nik){
-  fetch(WEB_APP_URL+"?action=cekStatus&nik="+nik)
+  let company = document.getElementById("companyUser").innerText || "";
+
+fetch(WEB_APP_URL+"?action=getUser&nik="+nik+"&company="+encodeURIComponent(company))
   .then(res=>res.json())
   .then(res=>{
     let txt="";
